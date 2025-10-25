@@ -1,5 +1,6 @@
 package com.mehrbod
 
+import com.mehrbod.di.configureDI
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
@@ -7,6 +8,7 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
+    configureDI()
     configureHTTP()
     configureSerialization()
     configureDatabases()

@@ -1,85 +1,52 @@
 package com.mehrbod
 
-import com.ucasoft.ktor.simpleCache.SimpleCache
-import com.ucasoft.ktor.simpleCache.cacheOutput
-import com.ucasoft.ktor.simpleRedisCache.*
-import io.github.flaxoos.ktor.server.plugins.kafka.Kafka
-import io.github.flaxoos.ktor.server.plugins.kafka.MessageTimestampType
-import io.github.flaxoos.ktor.server.plugins.kafka.TopicName
-import io.github.flaxoos.ktor.server.plugins.kafka.admin
-import io.github.flaxoos.ktor.server.plugins.kafka.common
-import io.github.flaxoos.ktor.server.plugins.kafka.consumer
-import io.github.flaxoos.ktor.server.plugins.kafka.consumerConfig
-import io.github.flaxoos.ktor.server.plugins.kafka.consumerRecordHandler
-import io.github.flaxoos.ktor.server.plugins.kafka.producer
-import io.github.flaxoos.ktor.server.plugins.kafka.registerSchemas
-import io.github.flaxoos.ktor.server.plugins.kafka.topic
-import io.ktor.client.HttpClient
-import io.ktor.http.*
-import io.ktor.resources.*
-import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.plugins.autohead.*
-import io.ktor.server.plugins.calllogging.*
-import io.ktor.server.plugins.contentnegotiation.*
-import io.ktor.server.plugins.defaultheaders.*
-import io.ktor.server.plugins.openapi.*
-import io.ktor.server.plugins.requestvalidation.RequestValidation
-import io.ktor.server.plugins.requestvalidation.ValidationResult
-import io.ktor.server.plugins.swagger.*
-import io.ktor.server.request.*
-import io.ktor.server.resources.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.opentelemetry.api.trace.SpanKind
-import io.opentelemetry.instrumentation.ktor.v3_0.KtorServerTelemetry
+import org.kodein.di.instance
+import org.kodein.di.ktor.closestDI
 import java.sql.Connection
 import java.sql.DriverManager
-import kotlin.random.Random
-import kotlin.time.Duration.Companion.seconds
-import kotlinx.serialization.Serializable
-import org.jetbrains.exposed.sql.*
-import org.slf4j.event.*
 
 fun Application.configureDatabases() {
-    val dbConnection: Connection = connectToPostgres(embedded = true)
-    val cityService = CityService(dbConnection)
+//    val dbConnection: Connection = connectToPostgres(embedded = true)
+//    val cityService = CityService(dbConnection)
     
-    routing {
-    
-        // Create city
-        post("/cities") {
-            val city = call.receive<City>()
-            val id = cityService.create(city)
-            call.respond(HttpStatusCode.Created, id)
-        }
-    
-        // Read city
-        get("/cities/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            try {
-                val city = cityService.read(id)
-                call.respond(HttpStatusCode.OK, city)
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.NotFound)
-            }
-        }
-    
-        // Update city
-        put("/cities/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            val user = call.receive<City>()
-            cityService.update(id, user)
-            call.respond(HttpStatusCode.OK)
-        }
-    
-        // Delete city
-        delete("/cities/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            cityService.delete(id)
-            call.respond(HttpStatusCode.OK)
-        }
-    }
+//    routing {
+//
+//        // Create city
+//        post("/cities") {
+//            val city = call.receive<City>()
+//            val id = cityService.create(city)
+//            call.respond(HttpStatusCode.Created, id)
+//        }
+//
+//        // Read city
+//        get("/cities/{id}") {
+//            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
+//            try {
+//                val city = cityService.read(id)
+//                call.respond(HttpStatusCode.OK, city)
+//            } catch (e: Exception) {
+//                call.respond(HttpStatusCode.NotFound)
+//            }
+//        }
+//
+//        // Update city
+//        put("/cities/{id}") {
+//            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
+//            val user = call.receive<City>()
+//            cityService.update(id, user)
+//            call.respond(HttpStatusCode.OK)
+//        }
+//
+//        // Delete city
+//        delete("/cities/{id}") {
+//            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
+//            cityService.delete(id)
+//            call.respond(HttpStatusCode.OK)
+//        }
+//    }
 //    install(Kafka) {
 //        schemaRegistryUrl = "my.schemaRegistryUrl"
 //        val myTopic = TopicName.named("my-topic")
@@ -115,45 +82,11 @@ fun Application.configureDatabases() {
 //            // MyRecord::class at myTopic // <-- Will register schema upon startup
 //        }
 //    }
-    val database = Database.connect(
-        url = "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1",
-        user = "root",
-        driver = "org.h2.Driver",
-        password = "",
-    )
-    val userService = UserService(database)
+
     routing {
-        // Create user
-        post("/users") {
-            val user = call.receive<ExposedUser>()
-            val id = userService.create(user)
-            call.respond(HttpStatusCode.Created, id)
-        }
-        
-        // Read user
-        get("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            val user = userService.read(id)
-            if (user != null) {
-                call.respond(HttpStatusCode.OK, user)
-            } else {
-                call.respond(HttpStatusCode.NotFound)
-            }
-        }
-        
-        // Update user
-        put("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            val user = call.receive<ExposedUser>()
-            userService.update(id, user)
-            call.respond(HttpStatusCode.OK)
-        }
-        
-        // Delete user
-        delete("/users/{id}") {
-            val id = call.parameters["id"]?.toInt() ?: throw IllegalArgumentException("Invalid ID")
-            userService.delete(id)
-            call.respond(HttpStatusCode.OK)
+        get("/create") {
+            val x: String by closestDI().instance()
+            call.respond(x)
         }
     }
 }
