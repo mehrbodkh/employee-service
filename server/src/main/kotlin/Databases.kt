@@ -1,16 +1,23 @@
 package com.mehrbod
 
+import com.mehrbod.common.Environment
 import com.mehrbod.data.repository.EmployeeRepository
+import com.mehrbod.model.Employee
 import io.ktor.server.application.*
 import io.ktor.server.engine.logError
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.h2.tools.Server
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 import java.sql.Connection
 import java.sql.DriverManager
 
 fun Application.configureDatabases() {
+    val environment by closestDI().instance<Environment>()
+    if (environment == Environment.DEV) {
+        Server.createWebServer("-webPort", "8082", "-tcpAllowOthers").start()
+    }
 //    val dbConnection: Connection = connectToPostgres(embedded = true)
 //    val cityService = CityService(dbConnection)
     
@@ -93,6 +100,11 @@ fun Application.configureDatabases() {
             } catch (e: Exception) {
                 logError(call, e)
             }
+        }
+
+        get("/fetch-all") {
+            val x: EmployeeRepository by closestDI().instance()
+            call.respond<List<Employee>>(x.fetchAllEmployees())
         }
     }
 }
