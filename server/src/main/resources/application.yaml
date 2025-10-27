@@ -1,14 +1,24 @@
 ktor:
-  environment: "dev"
+  environment: "DEV" # DEV, PROD
   application:
     modules:
         - com.mehrbod.ApplicationKt.module
   deployment:
     port: 8080
 database:
+  h2:
+    host: "localhost"
+    driver: "h2"
+    protocol: "mem"
+    database: "test"
+    user: ""
+    password: ""
   postgres:
-    devUrl: "jdbc:h2:mem:///test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL"
-    url: "jdbc:postgresql://localhost/default"
+#    url: "postgresql://localhost/default"
+    host: "localhost"
+    driver: "postgres"
+    protocol: "file"
+    database: "employee"
     user: "username"
     password: "password"
 kafka:
