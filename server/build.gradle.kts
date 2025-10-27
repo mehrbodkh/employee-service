@@ -21,7 +21,7 @@ dependencies {
     implementation(libs.ktor.client.core)
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)
-    implementation(libs.exposed.r2dbc)
+    implementation(libs.exposed.jdbc)
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.resources)
     implementation(libs.ktor.server.request.validation)

@@ -1,6 +1,8 @@
 package com.mehrbod
 
+import com.mehrbod.data.repository.EmployeeRepository
 import io.ktor.server.application.*
+import io.ktor.server.engine.logError
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.kodein.di.instance
@@ -85,8 +87,12 @@ fun Application.configureDatabases() {
 
     routing {
         get("/create") {
-            val x: String by closestDI().instance()
-            call.respond(x)
+            try {
+                val x: EmployeeRepository by closestDI().instance()
+                call.respond(x.createEmployee().toString())
+            } catch (e: Exception) {
+                logError(call, e)
+            }
         }
     }
 }

@@ -1,20 +1,23 @@
 package com.mehrbod.data.repository
 
-import com.mehrbod.data.dao.EmployeeDao
 import com.mehrbod.data.dao.EmployeesTable
-import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
-import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
-import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-class EmployeeRepository(private val db: R2dbcDatabase) {
-    suspend fun createEmployee() = suspendTransaction(db = db) {
-        SchemaUtils.create(EmployeesTable)
-
-        EmployeeDao.new {
-            name = "Something"
-            surname = "Something"
-            email = "Something"
-            position = "Something"
+class EmployeeRepository(private val db: Database) {
+    suspend fun createEmployee() = withContext(Dispatchers.IO) {
+        transaction(db) {
+            SchemaUtils.create(EmployeesTable)
+            EmployeesTable.insert {
+                it[name] = "something"
+                it[surname] = "something"
+                it[email] = "something"
+                it[position] = "something"
+            }
         }
     }
 }

@@ -13,40 +13,30 @@ import org.slf4j.event.Level
 fun Application.configureMonitoring() {
     val openTelemetry = getOpenTelemetry(serviceName = "opentelemetry-ktor-sample-server")
     
-    install(KtorServerTelemetry) {
-        setOpenTelemetry(openTelemetry)
-    
-        capturedRequestHeaders(HttpHeaders.UserAgent)
-    
-        spanKindExtractor {
-            if (httpMethod == HttpMethod.Post) {
-                SpanKind.PRODUCER
-            } else {
-                SpanKind.CLIENT
-            }
-        }
-    
-        attributesExtractor {
-            onStart {
-                attributes.put("start-time", System.currentTimeMillis())
-            }
-            onEnd {
-                attributes.put("end-time", System.currentTimeMillis())
-            }
-        }
-    }
+//    install(KtorServerTelemetry) {
+//        setOpenTelemetry(openTelemetry)
+//
+//        capturedRequestHeaders(HttpHeaders.UserAgent)
+//
+//        spanKindExtractor {
+//            if (httpMethod == HttpMethod.Post) {
+//                SpanKind.PRODUCER
+//            } else {
+//                SpanKind.CLIENT
+//            }
+//        }
+//
+//        attributesExtractor {
+//            onStart {
+//                attributes.put("start-time", System.currentTimeMillis())
+//            }
+//            onEnd {
+//                attributes.put("end-time", System.currentTimeMillis())
+//            }
+//        }
+//    }
     install(CallLogging) {
         level = Level.INFO
         filter { call -> call.request.path().startsWith("/") }
-    }
-    routing {
-        get("/hello") {
-            call.respondText("Hello World!")
-        }
-        
-        post("/post") {
-            val postData = call.receiveText()
-            call.respondText("Received: $postData")
-        }
     }
 }
