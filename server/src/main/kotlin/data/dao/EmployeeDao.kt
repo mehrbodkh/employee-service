@@ -5,6 +5,8 @@ import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
 import org.jetbrains.exposed.v1.dao.UUIDEntity
 import org.jetbrains.exposed.v1.dao.UUIDEntityClass
+import org.jetbrains.exposed.v1.jdbc.SchemaUtils
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.util.UUID
 
 object EmployeesTable: UUIDTable("employees") {
@@ -12,6 +14,12 @@ object EmployeesTable: UUIDTable("employees") {
     val surname = varchar("surname", length = 50)
     val email = varchar("email", length = 150)
     val position = varchar("position", length = 150)
+
+    init {
+        transaction {
+            SchemaUtils.create(EmployeesTable)
+        }
+    }
 }
 
 class EmployeeDao(id: EntityID<UUID>) : UUIDEntity(id) {
