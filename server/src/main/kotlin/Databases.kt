@@ -93,15 +93,6 @@ fun Application.configureDatabases() {
 //    }
 
     routing {
-        get("/create") {
-            try {
-                val x: EmployeeRepository by closestDI().instance()
-                call.respond(x.createEmployee().toString())
-            } catch (e: Exception) {
-                logError(call, e)
-            }
-        }
-
         get("/fetch-all") {
             val x: EmployeeRepository by closestDI().instance()
             call.respond<List<Employee>>(x.fetchAllEmployees())
