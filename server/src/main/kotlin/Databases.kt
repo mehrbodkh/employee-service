@@ -2,6 +2,7 @@ package com.mehrbod
 
 import com.mehrbod.common.Environment
 import com.mehrbod.data.repository.EmployeeRepository
+import com.mehrbod.model.Employee
 import io.ktor.server.application.*
 import io.ktor.server.engine.logError
 import io.ktor.server.response.*
@@ -99,6 +100,11 @@ fun Application.configureDatabases() {
             } catch (e: Exception) {
                 logError(call, e)
             }
+        }
+
+        get("/fetch-all") {
+            val x: EmployeeRepository by closestDI().instance()
+            call.respond<List<Employee>>(x.fetchAllEmployees())
         }
     }
 }
