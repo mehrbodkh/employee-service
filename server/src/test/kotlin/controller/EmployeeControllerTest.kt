@@ -1,7 +1,7 @@
 package com.mehrbod.controller
 
 import com.mehrbod.controller.model.request.CreateEmployeeRequest
-import com.mehrbod.model.Employee
+import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.util.initApplication
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -47,9 +47,9 @@ class EmployeeControllerTest {
         assertDoesNotThrow { UUID.fromString(uuid) }
 
         response = client.get("$API_PREFIX/$uuid")
-        val employee = response.body<Employee>()
+        val employeeDTO = response.body<EmployeeDTO>()
 
-        assertEquals(Employee("test1", "test2", "test3", "test4"), employee)
+        assertEquals(EmployeeDTO("test1", "test2", "test3", "test4"), employeeDTO)
     }
 
 }

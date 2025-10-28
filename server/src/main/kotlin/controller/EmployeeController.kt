@@ -2,7 +2,7 @@ package com.mehrbod.controller
 
 import com.mehrbod.controller.model.request.CreateEmployeeRequest
 import com.mehrbod.data.repository.EmployeeRepository
-import com.mehrbod.model.Employee
+import com.mehrbod.model.EmployeeDTO
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -11,9 +11,6 @@ import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 
 fun Route.employeeController() = route("/employees") {
-    get {
-        call.respond("Hello")
-    }
 
     post {
         val request = call.receive<CreateEmployeeRequest>()
@@ -26,11 +23,15 @@ fun Route.employeeController() = route("/employees") {
         val id = call.parameters["id"] ?: ""
         val employeeRepository by closestDI().instance<EmployeeRepository>()
         val response = employeeRepository.getById(id)
-        call.respond(response!!)
+        response?.let {
+            call.respond(response)
+        } ?: run {
+            call.respond(HttpStatusCode.NotFound, "Employee not found")
+        }
     }
 
     get("/fetch-all") {
         val x: EmployeeRepository by closestDI().instance()
-        call.respond<List<Employee>>(x.fetchAllEmployees())
+        call.respond<List<EmployeeDTO>>(x.fetchAllEmployees())
     }
 }

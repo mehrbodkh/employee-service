@@ -2,7 +2,7 @@ package com.mehrbod
 
 import com.mehrbod.common.Environment
 import com.mehrbod.data.repository.EmployeeRepository
-import com.mehrbod.model.Employee
+import com.mehrbod.model.EmployeeDTO
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -96,7 +96,7 @@ fun Application.configureDatabases() {
     routing {
         get("/fetch-all") {
             val x: EmployeeRepository by closestDI().instance()
-            call.respond<List<Employee>>(x.fetchAllEmployees())
+            call.respond<List<EmployeeDTO>>(x.fetchAllEmployees())
         }
     }
 }
