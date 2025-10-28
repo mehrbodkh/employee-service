@@ -32,11 +32,11 @@ class DatabaseDataSource(
         }
     }
 
-    suspend fun getById(id: String): EmployeeDTO? = withContext(ioDispatcher) {
+    suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
         suspendTransaction(db) {
             EmployeesTable
                 .selectAll()
-                .where { EmployeesTable.id eq UUID.fromString(id) }
+                .where { EmployeesTable.id eq id }
                 .singleOrNull()
                 ?.convertToEmployeeDTO()
         }

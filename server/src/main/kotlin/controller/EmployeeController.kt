@@ -9,6 +9,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
+import java.util.UUID
 
 fun Route.employeeController() = route("/employees") {
 
@@ -22,7 +23,7 @@ fun Route.employeeController() = route("/employees") {
     get("{id}") {
         val id = call.parameters["id"] ?: ""
         val employeeRepository by closestDI().instance<EmployeeRepository>()
-        val response = employeeRepository.getById(id)
+        val response = employeeRepository.getById(UUID.fromString(id))
         response?.let {
             call.respond(response)
         } ?: run {

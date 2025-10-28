@@ -17,7 +17,7 @@ class EmployeeRepository(
         dbDataSource.createEmployee(employee)
     }
 
-    suspend fun getById(id: String): EmployeeDTO? = withContext(ioDispatcher) {
+    suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
         dbDataSource.getById(id)
     }
 
