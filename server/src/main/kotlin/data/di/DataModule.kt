@@ -1,6 +1,7 @@
 package com.mehrbod.data.di
 
 import com.mehrbod.common.Environment
+import com.mehrbod.data.datasource.DatabaseDataSource
 import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.r2dbc.pool.ConnectionPool
@@ -38,6 +39,10 @@ val dataModule = DI.Module("dbModule") {
             Environment.PROD -> PostgreSQLDialect()
             Environment.DEV -> H2Dialect()
         }
+    }
+
+    bind<DatabaseDataSource>() with singleton {
+        DatabaseDataSource(instance(), instance("io"))
     }
 }
 
