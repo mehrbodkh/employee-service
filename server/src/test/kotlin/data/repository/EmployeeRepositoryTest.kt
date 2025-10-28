@@ -1,0 +1,51 @@
+package com.mehrbod.data.repository
+
+import com.mehrbod.controller.model.request.CreateEmployeeRequest
+import com.mehrbod.data.datasource.DatabaseDataSource
+import com.mehrbod.model.EmployeeDTO
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.impl.annotations.MockK
+import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import java.util.UUID
+
+@ExtendWith(MockKExtension::class)
+class EmployeeRepositoryTest {
+
+    @MockK
+    private lateinit var dataSource: DatabaseDataSource
+
+    private val repository by lazy {
+        EmployeeRepository(dataSource, Dispatchers.Unconfined)
+    }
+
+    @Test
+    fun shouldCreateEmployee() = runTest {
+        val uuid = mockk<UUID>()
+        val employee = mockk<CreateEmployeeRequest>()
+        coEvery { dataSource.createEmployee(any()) } returns uuid
+
+        val response = repository.createEmployee(employee)
+
+        coVerify(exactly = 1) { dataSource.createEmployee(employee) }
+        assertEquals(uuid, response)
+    }
+
+    @Test
+    fun shouldFetchEmployee() = runTest {
+        val uuid = mockk<UUID>()
+        val employee = mockk<EmployeeDTO>()
+        coEvery { dataSource.getById(any()) } returns employee
+
+        val response = repository.getById(uuid)
+
+        coVerify(exactly = 1) { dataSource.getById(uuid) }
+        assertEquals(employee, response)
+    }
+}

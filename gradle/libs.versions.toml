@@ -7,12 +7,14 @@ logback = "1.4.14"
 r2dbc-postgres = "1.0.7.RELEASE"
 r2dbc-pool = "1.0.2.RELEASE"
 kodein = "7.28.0"
+mockk = "1.14.6"
 
 [libraries]
 ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktor" }
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 postgresql = { module = "org.postgresql:r2dbc-postgresql", version.ref = "r2dbc-postgres" }
 h2 = { module = "io.r2dbc:r2dbc-h2", version.ref = "h2" }
 pool = { module = "io.r2dbc:r2dbc-pool", version.ref = "r2dbc-pool" }
@@ -38,6 +40,7 @@ ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 kodein = { module = "org.kodein.di:kodein-di-framework-ktor-server-jvm", version.ref = "kodein"}
+mockk = { module = "io.mockk:mockk", version.ref = "mockk"}
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
