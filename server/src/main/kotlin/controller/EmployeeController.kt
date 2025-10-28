@@ -26,7 +26,7 @@ fun Route.employeeController() = route("/employees") {
         val id = call.parameters["id"] ?: ""
         val employeeRepository by closestDI().instance<EmployeeRepository>()
         val response = employeeRepository.getById(id)
-        call.respond(response.toString())
+        call.respond(response!!)
     }
 
     get("/fetch-all") {

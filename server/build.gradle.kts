@@ -14,6 +14,7 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.client.content.negotiation)
     implementation(libs.kodein)
     implementation(libs.postgresql)
     implementation(libs.pool)
