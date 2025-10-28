@@ -2,16 +2,15 @@ package com.mehrbod.controller
 
 import com.mehrbod.controller.model.request.CreateEmployeeRequest
 import com.mehrbod.model.EmployeeDTO
-import com.mehrbod.util.initApplication
+import com.mehrbod.util.initializedTestApplication
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.testing.*
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 import java.util.*
-import kotlin.test.Test
 
 class EmployeeControllerTest {
 
@@ -20,9 +19,7 @@ class EmployeeControllerTest {
     }
 
     @Test
-    fun testEmployeeCreation() = testApplication {
-        initApplication()
-
+    fun testEmployeeCreation() = initializedTestApplication {
         val response = client.post(API_PREFIX) {
             contentType(ContentType.Application.Json)
             setBody(CreateEmployeeRequest("test1", "test2", "test3", "test4"))
@@ -34,9 +31,7 @@ class EmployeeControllerTest {
     }
 
     @Test
-    fun testEmployeeRetrieval() = testApplication {
-        initApplication()
-
+    fun testEmployeeRetrieval() = initializedTestApplication {
         var response = client.post(API_PREFIX) {
             contentType(ContentType.Application.Json)
             setBody(CreateEmployeeRequest("test1", "test2", "test3", "test4"))
@@ -51,5 +46,4 @@ class EmployeeControllerTest {
 
         assertEquals(EmployeeDTO("test1", "test2", "test3", "test4"), employeeDTO)
     }
-
 }

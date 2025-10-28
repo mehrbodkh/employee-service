@@ -1,11 +1,21 @@
 package com.mehrbod.util
 
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.config.ApplicationConfig
-import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.config.*
+import io.ktor.server.testing.*
+import kotlin.coroutines.EmptyCoroutineContext
 
-fun ApplicationTestBuilder.initApplication() {
+fun initializedTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) = testApplication(
+    EmptyCoroutineContext,
+    {
+        initializeApplication()
+        block()
+    }
+)
+
+
+private fun ApplicationTestBuilder.initializeApplication() {
     environment {
         config = ApplicationConfig("application.yaml")
     }
