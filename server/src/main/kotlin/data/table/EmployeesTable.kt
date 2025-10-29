@@ -2,6 +2,7 @@ package com.mehrbod.data.table
 
 import com.mehrbod.model.EmployeeDTO
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
 import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
@@ -12,7 +13,7 @@ object EmployeesTable : UUIDTable("employees") {
     val surname = varchar("surname", length = 50)
     val email = varchar("email", length = 150).uniqueIndex()
     val position = varchar("position", length = 150)
-    val supervisor = reference("supervisor_id", EmployeesTable).nullable()
+    val supervisor = optReference("supervisor_id", EmployeesTable, onDelete = ReferenceOption.CASCADE)
 
     init {
         runBlocking {
@@ -30,5 +31,5 @@ fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
     email = this[EmployeesTable.email],
     position = this[EmployeesTable.position],
     supervisorId = this[EmployeesTable.supervisor]?.value?.toString(),
-    subordinateCount = 0,
+    subordinatesCount = 0,
 )

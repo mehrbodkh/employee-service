@@ -1,6 +1,6 @@
 package com.mehrbod.controller
 
-import com.mehrbod.controller.model.request.CreateEmployeeRequest
+import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.util.initializedTestApplication
 import io.ktor.client.call.*
@@ -25,7 +25,7 @@ class EmployeeControllerTest {
         fun testInvalidRequestObject() = initializedTestApplication {
             val response = client.post(API_PREFIX) {
                 contentType(ContentType.Application.Json)
-                setBody(CreateEmployeeRequest("", "test2", "test3", "test4"))
+                setBody(EmployeeRequest("", "test2", "test3", "test4"))
             }
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -37,7 +37,7 @@ class EmployeeControllerTest {
         fun testInvalidUUIDRequestObject() = initializedTestApplication {
             val response = client.post(API_PREFIX) {
                 contentType(ContentType.Application.Json)
-                setBody(CreateEmployeeRequest("test1", "test2", "test3", "test4", "094324"))
+                setBody(EmployeeRequest("test1", "test2", "test3", "test4", "094324"))
             }
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -50,11 +50,11 @@ class EmployeeControllerTest {
     fun testEmployeeCreation() = initializedTestApplication {
         val response = client.post(API_PREFIX) {
             contentType(ContentType.Application.Json)
-            setBody(CreateEmployeeRequest("test1", "test2", "creation@gmail.com", "test4"))
+            setBody(EmployeeRequest("test1", "test2", "creation@gmail.com", "test4"))
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
-        val uuid = response.bodyAsText()
+        val uuid = response.body<EmployeeDTO>().id
         assertDoesNotThrow { UUID.fromString(uuid) }
     }
 
@@ -62,11 +62,11 @@ class EmployeeControllerTest {
     fun testEmployeeRetrieval() = initializedTestApplication {
         var response = client.post(API_PREFIX) {
             contentType(ContentType.Application.Json)
-            setBody(CreateEmployeeRequest("test1", "test2", "retrieval@gmail.com", "test4"))
+            setBody(EmployeeRequest("test1", "test2", "retrieval@gmail.com", "test4"))
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
-        val uuid = response.bodyAsText()
+        val uuid = response.body<EmployeeDTO>().id
         assertDoesNotThrow { UUID.fromString(uuid) }
 
         response = client.get("$API_PREFIX/$uuid")

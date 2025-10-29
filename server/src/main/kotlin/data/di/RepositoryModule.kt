@@ -8,6 +8,6 @@ import org.kodein.di.singleton
 
 val repositoryModule = DI.Module("RepositoryModule") {
     bind<EmployeeRepository>() with singleton {
-        EmployeeRepository(instance(), instance("io"))
+        EmployeeRepository(instance("database"), instance("io"))
     }
 }
