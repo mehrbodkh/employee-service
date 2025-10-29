@@ -26,6 +26,7 @@ dependencies {
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.resources)
     implementation(libs.ktor.server.request.validation)
+    implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.server.auto.head.response)
     implementation(libs.ktor.server.openapi)
     implementation(libs.ktor.server.swagger)
