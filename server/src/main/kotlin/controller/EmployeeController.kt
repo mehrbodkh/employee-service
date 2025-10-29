@@ -4,16 +4,17 @@ import com.mehrbod.controller.model.request.CreateEmployeeRequest
 import com.mehrbod.data.repository.EmployeeRepository
 import com.mehrbod.model.EmployeeDTO
 import io.ktor.http.*
-import io.ktor.server.plugins.requestvalidation.RequestValidationConfig
-import io.ktor.server.plugins.requestvalidation.ValidationResult
+import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
-import java.util.UUID
+import java.util.*
 
-object EmployeeController : BaseController {
+class EmployeeController(
+    private val employeeRepository: EmployeeRepository
+) : BaseController {
     override fun RequestValidationConfig.validator() {
         validate<CreateEmployeeRequest> {
             try {
@@ -28,14 +29,12 @@ object EmployeeController : BaseController {
     override fun Route.routes() = route("/employees") {
         post {
             val request = call.receive<CreateEmployeeRequest>()
-            val employeeRepository by closestDI().instance<EmployeeRepository>()
             val response = employeeRepository.createEmployee(request)
             call.respond(HttpStatusCode.Created, response.toString())
         }
 
         get("{id}") {
             val id = call.parameters["id"] ?: ""
-            val employeeRepository by closestDI().instance<EmployeeRepository>()
             val response = employeeRepository.getById(UUID.fromString(id))
             response?.let {
                 call.respond(response)
@@ -46,8 +45,6 @@ object EmployeeController : BaseController {
 
         get("/{id}/subtree") {
             val id = call.parameters["id"] ?: return@get call.respond(mapOf("error" to "bad id"))
-            val depth = call.request.queryParameters["depth"]?.toIntOrNull()
-            val employeeRepository by closestDI().instance<EmployeeRepository>()
             val nodes = employeeRepository.getSubordinates(id)
             call.respond(nodes)
         }
