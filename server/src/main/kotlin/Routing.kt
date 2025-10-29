@@ -13,7 +13,6 @@ import org.kodein.di.instance
 import org.kodein.di.ktor.closestDI
 
 fun Application.configureRouting() {
-
     install(StatusPages) {
         exception<RequestValidationException> { call, cause ->
             call.respond(HttpStatusCode.BadRequest, cause.reasons.joinToString())
@@ -24,7 +23,7 @@ fun Application.configureRouting() {
     val controllers by closestDI().instance<List<BaseController>>()
     install(RequestValidation) {
         controllers.forEach { controller ->
-            controller.apply {
+            with(controller) {
                 validator()
             }
         }
@@ -32,7 +31,7 @@ fun Application.configureRouting() {
     routing {
         route("/api/v1") {
             controllers.forEach { controller ->
-                controller.apply {
+                with(controller) {
                     routes()
                 }
             }
