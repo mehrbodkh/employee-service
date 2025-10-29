@@ -23,11 +23,11 @@ import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import java.util.*
 
-class DatabaseDataSource(
+class DatabaseEmployeeDataSource(
     private val db: R2dbcDatabase,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-) {
-    suspend fun createEmployee(employee: EmployeeRequest): EmployeeDTO = withContext(ioDispatcher) {
+) : EmployeeDataSource {
+    override suspend fun createEmployee(employee: EmployeeRequest): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
             val id = EmployeesTable.insertAndGetId {
                 it[name] = employee.name
@@ -74,7 +74,7 @@ class DatabaseDataSource(
         }
     }
 
-    suspend fun getSubordinates(managerId: String): List<EmployeeDTO> = suspendTransaction(db) {
+    override suspend fun getSubordinates(managerId: String): List<EmployeeDTO> = suspendTransaction(db) {
         (EmployeeHierarchyTable.join(
             EmployeesTable,
             JoinType.INNER,
@@ -88,7 +88,7 @@ class DatabaseDataSource(
     }
 
 
-    suspend fun getSupervisors(employeeId: String): List<EmployeeDTO> = suspendTransaction(db) {
+    override suspend fun getSupervisors(employeeId: String): List<EmployeeDTO> = suspendTransaction(db) {
         (EmployeeHierarchyTable.join(
             EmployeesTable,
             JoinType.INNER,
@@ -101,7 +101,7 @@ class DatabaseDataSource(
             .toList()
     }
 
-    suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
+    override suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
         suspendTransaction(db) {
             EmployeesTable
                 .selectAll()
@@ -111,7 +111,7 @@ class DatabaseDataSource(
         }
     }
 
-    suspend fun fetchAllEmployees(): List<EmployeeDTO> = withContext(ioDispatcher) {
+    override suspend fun fetchAllEmployees(): List<EmployeeDTO> = withContext(ioDispatcher) {
         suspendTransaction(db) {
             EmployeesTable.selectAll().map { it.convertToEmployeeDTO() }.toList()
         }

@@ -1,7 +1,8 @@
 package com.mehrbod.data.di
 
 import com.mehrbod.common.Environment
-import com.mehrbod.data.datasource.DatabaseDataSource
+import com.mehrbod.data.datasource.DatabaseEmployeeDataSource
+import com.mehrbod.data.datasource.EmployeeDataSource
 import com.mehrbod.data.factory.createDbConnection
 import io.ktor.server.application.*
 import org.jetbrains.exposed.v1.core.vendors.H2Dialect
@@ -32,7 +33,7 @@ val dataModule = DI.Module("dbModule") {
         }
     }
 
-    bindSingleton<DatabaseDataSource> {
-        DatabaseDataSource(instance(), instance("io"))
+    bindSingleton<EmployeeDataSource>("database") {
+        DatabaseEmployeeDataSource(instance(), instance("io"))
     }
 }

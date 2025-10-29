@@ -1,7 +1,7 @@
 package com.mehrbod.data.repository
 
 import com.mehrbod.controller.model.request.EmployeeRequest
-import com.mehrbod.data.datasource.DatabaseDataSource
+import com.mehrbod.data.datasource.EmployeeDataSource
 import com.mehrbod.model.EmployeeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 import java.util.*
 
 class EmployeeRepository(
-    private val dbDataSource: DatabaseDataSource,
+    private val dbDataSource: EmployeeDataSource,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
