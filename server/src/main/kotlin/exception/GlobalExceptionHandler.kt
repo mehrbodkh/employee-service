@@ -12,8 +12,8 @@ fun Application.configureGlobalExceptionHandling() {
         exception<RequestValidationException> { call, cause ->
             call.respond(HttpStatusCode.BadRequest, cause.reasons.joinToString())
         }
-        exception<EmployeeNotFoundException> { call, cause ->
-            call.respond(status = HttpStatusCode.NotFound, message = cause.message!!)
+        exception<ServerException> { call, cause ->
+            call.respond(status = cause.statusCode, message = cause.errorMessage)
         }
     }
 }

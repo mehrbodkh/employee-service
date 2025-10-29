@@ -1,3 +1,6 @@
 package com.mehrbod.exception
 
-data class EmployeeNotFoundException(val id: String) : RuntimeException("Employee with id $id not found")
+import io.ktor.http.HttpStatusCode
+
+data class EmployeeNotFoundException(val id: String) :
+    ServerException(HttpStatusCode.NotFound, "Employee with id $id not found")

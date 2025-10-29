@@ -2,6 +2,7 @@ package com.mehrbod.data.repository
 
 import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.data.datasource.EmployeeDataSource
+import com.mehrbod.exception.EmployeeCouldNotBeCreatedException
 import com.mehrbod.model.EmployeeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,11 @@ class EmployeeRepository(
 ) {
 
     suspend fun createEmployee(employee: EmployeeRequest): EmployeeDTO = withContext(ioDispatcher) {
-        dbDataSource.createEmployee(employee)
+        try {
+            dbDataSource.createEmployee(employee)
+        } catch (_: Exception) {
+            throw EmployeeCouldNotBeCreatedException()
+        }
     }
 
     suspend fun getSubordinates(id: String) = withContext(ioDispatcher) {
