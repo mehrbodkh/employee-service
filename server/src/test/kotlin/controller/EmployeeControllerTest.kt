@@ -44,6 +44,6 @@ class EmployeeControllerTest {
         response = client.get("$API_PREFIX/$uuid")
         val employeeDTO = response.body<EmployeeDTO>()
 
-        assertEquals(EmployeeDTO("test1", "test2", "test3", "test4"), employeeDTO)
+        assertEquals(EmployeeDTO("id", "test1", "test2", "test3", "test4", null, 0), employeeDTO)
     }
 }

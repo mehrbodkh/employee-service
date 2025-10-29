@@ -31,6 +31,14 @@ fun Route.employeeController() = route("/employees") {
         }
     }
 
+    get("/{id}/subtree") {
+        val id = call.parameters["id"] ?: return@get call.respond(mapOf("error" to "bad id"))
+        val depth = call.request.queryParameters["depth"]?.toIntOrNull()
+        val employeeRepository by closestDI().instance<EmployeeRepository>()
+        val nodes = employeeRepository.getSubordinates(id)
+        call.respond(nodes)
+    }
+
     get("/fetch-all") {
         val x: EmployeeRepository by closestDI().instance()
         call.respond<List<EmployeeDTO>>(x.fetchAllEmployees())
