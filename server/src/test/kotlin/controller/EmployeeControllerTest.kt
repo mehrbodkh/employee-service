@@ -19,10 +19,34 @@ class EmployeeControllerTest {
     }
 
     @Test
+    fun testInvalidRequestObject() = initializedTestApplication {
+        val response = client.post(API_PREFIX) {
+            contentType(ContentType.Application.Json)
+            setBody(CreateEmployeeRequest("", "test2", "test3", "test4"))
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        val message = response.bodyAsText()
+        assertEquals("Mandatory fields cannot be empty.", message)
+    }
+
+    @Test
+    fun testInvalidUUIDRequestObject() = initializedTestApplication {
+        val response = client.post(API_PREFIX) {
+            contentType(ContentType.Application.Json)
+            setBody(CreateEmployeeRequest("test1", "test2", "test3", "test4", "094324"))
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+        val message = response.bodyAsText()
+        assertEquals("Invalid supervisorId: 094324", message)
+    }
+
+    @Test
     fun testEmployeeCreation() = initializedTestApplication {
         val response = client.post(API_PREFIX) {
             contentType(ContentType.Application.Json)
-            setBody(CreateEmployeeRequest("test1", "test2", "test3", "test4"))
+            setBody(CreateEmployeeRequest("test1", "test2", "creation@gmail.com", "test4"))
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
@@ -34,7 +58,7 @@ class EmployeeControllerTest {
     fun testEmployeeRetrieval() = initializedTestApplication {
         var response = client.post(API_PREFIX) {
             contentType(ContentType.Application.Json)
-            setBody(CreateEmployeeRequest("test1", "test2", "test3", "test4"))
+            setBody(CreateEmployeeRequest("test1", "test2", "retrieval@gmail.com", "test4"))
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
@@ -44,6 +68,9 @@ class EmployeeControllerTest {
         response = client.get("$API_PREFIX/$uuid")
         val employeeDTO = response.body<EmployeeDTO>()
 
-        assertEquals(EmployeeDTO("id", "test1", "test2", "test3", "test4", null, 0), employeeDTO)
+        assertEquals(
+            EmployeeDTO(employeeDTO.id, "test1", "test2", "retrieval@gmail.com", "test4", null, 0),
+            employeeDTO
+        )
     }
 }
