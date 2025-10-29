@@ -9,6 +9,7 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
+@Suppress("UNUSED_PARAMETER")
 fun Application.module() {
     configureDI()
     configureHTTP()
