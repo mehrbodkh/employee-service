@@ -1,20 +1,15 @@
 package com.mehrbod.controller
 
 import com.mehrbod.controller.model.request.EmployeeRequest
-import com.mehrbod.data.repository.EmployeeRepository
-import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.service.EmployeeService
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import org.kodein.di.instance
-import org.kodein.di.ktor.closestDI
 import java.util.*
 
 class EmployeeController(
-    private val employeeRepository: EmployeeRepository,
     private val employeeService: EmployeeService,
 ) : BaseController {
 
@@ -48,13 +43,8 @@ class EmployeeController(
 
         get("/{id}/subtree") {
             val id = call.parameters["id"] ?: return@get call.respond(mapOf("error" to "bad id"))
-            val nodes = employeeRepository.getSubordinates(id)
-            call.respond(nodes)
-        }
-
-        get("/fetch-all") {
-            val x: EmployeeRepository by closestDI().instance()
-            call.respond<List<EmployeeDTO>>(x.fetchAllEmployees())
+            val response = employeeService.getEmployeeSubordinates(UUID.fromString(id))
+            call.respond(response)
         }
     }
 

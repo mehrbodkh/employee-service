@@ -29,9 +29,7 @@ class EmployeeService(
 
     }
 
-    suspend fun getEmployeeSubordinates(id: UUID) {
-
-    }
+    suspend fun getEmployeeSubordinates(id: UUID) = employeeRepository.getSubordinates(id.toString())
 
     suspend fun getEmployeeAncestors(id: UUID) {
 
