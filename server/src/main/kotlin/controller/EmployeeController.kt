@@ -1,8 +1,9 @@
 package com.mehrbod.controller
 
-import com.mehrbod.controller.model.request.CreateEmployeeRequest
+import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.data.repository.EmployeeRepository
 import com.mehrbod.model.EmployeeDTO
+import com.mehrbod.service.EmployeeService
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
@@ -13,10 +14,12 @@ import org.kodein.di.ktor.closestDI
 import java.util.*
 
 class EmployeeController(
-    private val employeeRepository: EmployeeRepository
+    private val employeeRepository: EmployeeRepository,
+    private val employeeService: EmployeeService,
 ) : BaseController {
+
     override fun RequestValidationConfig.validator() {
-        validate<CreateEmployeeRequest> {
+        validate<EmployeeRequest> {
             if (it.name.isBlank() || it.surname.isBlank() || it.email.isBlank() || it.position.isBlank()) {
                 return@validate ValidationResult.Invalid("Mandatory fields cannot be empty.")
             }
@@ -30,20 +33,17 @@ class EmployeeController(
     }
 
     override fun Route.routes() = route("/employees") {
+
         post {
-            val request = call.receive<CreateEmployeeRequest>()
-            val response = employeeRepository.createEmployee(request)
-            call.respond(HttpStatusCode.Created, response.toString())
+            val request = call.receive<EmployeeRequest>()
+            val response = employeeService.createEmployee(request)
+            call.respond(HttpStatusCode.Created, response)
         }
 
         get("{id}") {
             val id = call.parameters["id"] ?: ""
-            val response = employeeRepository.getById(UUID.fromString(id))
-            response?.let {
-                call.respond(response)
-            } ?: run {
-                call.respond(HttpStatusCode.NotFound, "Employee not found")
-            }
+            val response = employeeService.getEmployee(UUID.fromString(id))
+            call.respond(response)
         }
 
         get("/{id}/subtree") {

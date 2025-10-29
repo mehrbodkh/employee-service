@@ -1,8 +1,7 @@
 package com.mehrbod.data.datasource
 
-import com.mehrbod.controller.model.request.CreateEmployeeRequest
+import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.data.table.EmployeeHierarchyTable
-import com.mehrbod.data.table.EmployeeHierarchyTable.uuid
 import com.mehrbod.data.table.EmployeesTable
 import com.mehrbod.data.table.convertToEmployeeDTO
 import com.mehrbod.model.EmployeeDTO
@@ -14,6 +13,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.JoinType
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.dao.id.EntityIDFunctionProvider
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
@@ -27,13 +27,19 @@ class DatabaseDataSource(
     private val db: R2dbcDatabase,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
-    suspend fun createEmployee(employee: CreateEmployeeRequest): UUID = withContext(ioDispatcher) {
+    suspend fun createEmployee(employee: EmployeeRequest): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
             val id = EmployeesTable.insertAndGetId {
                 it[name] = employee.name
                 it[surname] = employee.surname
                 it[email] = employee.email
                 it[position] = employee.position
+                it[supervisor] = employee.supervisorId?.let {
+                    EntityIDFunctionProvider.createEntityID(
+                        UUID.fromString(employee.supervisorId),
+                        EmployeesTable
+                    )
+                }
             }.value
 
             EmployeeHierarchyTable.insert {
@@ -56,12 +62,25 @@ class DatabaseDataSource(
                 }
             }
 
-            id
+            EmployeeDTO(
+                id.toString(),
+                employee.name,
+                employee.surname,
+                employee.email,
+                employee.position,
+                employee.supervisorId,
+                0
+            )
         }
     }
 
     suspend fun getSubordinates(managerId: String): List<EmployeeDTO> = suspendTransaction(db) {
-        (EmployeeHierarchyTable.join(EmployeesTable, JoinType.INNER, EmployeesTable.id, otherColumn = EmployeeHierarchyTable.descendant))
+        (EmployeeHierarchyTable.join(
+            EmployeesTable,
+            JoinType.INNER,
+            EmployeesTable.id,
+            otherColumn = EmployeeHierarchyTable.descendant
+        ))
             .selectAll()
             .where { (EmployeeHierarchyTable.ancestor eq UUID.fromString(managerId)) and (EmployeeHierarchyTable.distance greater 0) }
             .map { it.convertToEmployeeDTO() }
@@ -70,7 +89,12 @@ class DatabaseDataSource(
 
 
     suspend fun getSupervisors(employeeId: String): List<EmployeeDTO> = suspendTransaction(db) {
-        (EmployeeHierarchyTable.join(EmployeesTable, JoinType.INNER, EmployeesTable.id, otherColumn = EmployeeHierarchyTable.ancestor))
+        (EmployeeHierarchyTable.join(
+            EmployeesTable,
+            JoinType.INNER,
+            EmployeesTable.id,
+            otherColumn = EmployeeHierarchyTable.ancestor
+        ))
             .selectAll()
             .where { (EmployeeHierarchyTable.descendant eq UUID.fromString(employeeId)) and (EmployeeHierarchyTable.distance greater 0) }
             .map { it.convertToEmployeeDTO() }

@@ -10,7 +10,7 @@ import org.kodein.di.singleton
 
 
 val controllerModule = DI.Module("controller") {
-    bindSingleton { EmployeeController(instance()) }
+    bindSingleton { EmployeeController(instance(), instance()) }
 
     bind<List<BaseController>>() with singleton {
         listOf(

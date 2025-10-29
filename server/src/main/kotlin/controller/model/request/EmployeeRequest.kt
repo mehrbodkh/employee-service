@@ -3,7 +3,7 @@ package com.mehrbod.controller.model.request
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateEmployeeRequest(
+data class EmployeeRequest(
     val name: String,
     val surname: String,
     val email: String,

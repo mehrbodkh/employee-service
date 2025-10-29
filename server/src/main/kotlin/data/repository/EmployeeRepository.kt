@@ -1,6 +1,6 @@
 package com.mehrbod.data.repository
 
-import com.mehrbod.controller.model.request.CreateEmployeeRequest
+import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.data.datasource.DatabaseDataSource
 import com.mehrbod.model.EmployeeDTO
 import kotlinx.coroutines.CoroutineDispatcher
@@ -13,7 +13,7 @@ class EmployeeRepository(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
-    suspend fun createEmployee(employee: CreateEmployeeRequest): UUID = withContext(ioDispatcher) {
+    suspend fun createEmployee(employee: EmployeeRequest): EmployeeDTO = withContext(ioDispatcher) {
         dbDataSource.createEmployee(employee)
     }
 

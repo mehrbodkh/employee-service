@@ -1,6 +1,6 @@
 package com.mehrbod.data.repository
 
-import com.mehrbod.controller.model.request.CreateEmployeeRequest
+import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.data.datasource.DatabaseDataSource
 import com.mehrbod.model.EmployeeDTO
 import io.mockk.coEvery
@@ -27,14 +27,14 @@ class EmployeeRepositoryTest {
 
     @Test
     fun shouldCreateEmployee() = runTest {
-        val uuid = mockk<UUID>()
-        val employee = mockk<CreateEmployeeRequest>()
-        coEvery { dataSource.createEmployee(any()) } returns uuid
+        val request = mockk<EmployeeRequest>()
+        val employee = mockk<EmployeeDTO>()
+        coEvery { dataSource.createEmployee(any()) } returns employee
 
-        val response = repository.createEmployee(employee)
+        val response = repository.createEmployee(request)
 
-        coVerify(exactly = 1) { dataSource.createEmployee(employee) }
-        assertEquals(uuid, response)
+        coVerify(exactly = 1) { dataSource.createEmployee(request) }
+        assertEquals(employee, response)
     }
 
     @Test
