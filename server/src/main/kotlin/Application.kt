@@ -1,6 +1,8 @@
 package com.mehrbod
 
+import com.mehrbod.common.configureSerialization
 import com.mehrbod.di.configureDI
+import com.mehrbod.exception.configureGlobalExceptionHandling
 import io.ktor.server.application.*
 
 fun main(args: Array<String>) {
@@ -14,4 +16,5 @@ fun Application.module() {
     configureDatabases()
     configureMonitoring()
     configureRouting()
+    configureGlobalExceptionHandling()
 }
