@@ -9,6 +9,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.*
 
@@ -18,28 +19,31 @@ class EmployeeControllerTest {
         const val API_PREFIX = "/api/v1/employees"
     }
 
-    @Test
-    fun testInvalidRequestObject() = initializedTestApplication {
-        val response = client.post(API_PREFIX) {
-            contentType(ContentType.Application.Json)
-            setBody(CreateEmployeeRequest("", "test2", "test3", "test4"))
+    @Nested
+    inner class Validation {
+        @Test
+        fun testInvalidRequestObject() = initializedTestApplication {
+            val response = client.post(API_PREFIX) {
+                contentType(ContentType.Application.Json)
+                setBody(CreateEmployeeRequest("", "test2", "test3", "test4"))
+            }
+
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            val message = response.bodyAsText()
+            assertEquals("Mandatory fields cannot be empty.", message)
         }
 
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        val message = response.bodyAsText()
-        assertEquals("Mandatory fields cannot be empty.", message)
-    }
+        @Test
+        fun testInvalidUUIDRequestObject() = initializedTestApplication {
+            val response = client.post(API_PREFIX) {
+                contentType(ContentType.Application.Json)
+                setBody(CreateEmployeeRequest("test1", "test2", "test3", "test4", "094324"))
+            }
 
-    @Test
-    fun testInvalidUUIDRequestObject() = initializedTestApplication {
-        val response = client.post(API_PREFIX) {
-            contentType(ContentType.Application.Json)
-            setBody(CreateEmployeeRequest("test1", "test2", "test3", "test4", "094324"))
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+            val message = response.bodyAsText()
+            assertEquals("Invalid supervisorId: 094324", message)
         }
-
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-        val message = response.bodyAsText()
-        assertEquals("Invalid supervisorId: 094324", message)
     }
 
     @Test
