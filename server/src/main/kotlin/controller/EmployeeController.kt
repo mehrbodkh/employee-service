@@ -17,8 +17,11 @@ class EmployeeController(
 ) : BaseController {
     override fun RequestValidationConfig.validator() {
         validate<CreateEmployeeRequest> {
+            if (it.name.isBlank() || it.surname.isBlank() || it.email.isBlank() || it.position.isBlank()) {
+                return@validate ValidationResult.Invalid("Mandatory fields cannot be empty.")
+            }
             try {
-                UUID.fromString(it.supervisorId)
+                it.supervisorId?.let { supervisorId -> UUID.fromString(supervisorId) }
             } catch (_: Exception) {
                 return@validate ValidationResult.Invalid("Invalid supervisorId: ${it.supervisorId}")
             }
