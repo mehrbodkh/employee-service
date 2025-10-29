@@ -1,6 +1,8 @@
 package com.mehrbod.data.datasource
 
 import com.mehrbod.controller.model.request.CreateEmployeeRequest
+import com.mehrbod.data.table.EmployeeHierarchyTable
+import com.mehrbod.data.table.EmployeeHierarchyTable.uuid
 import com.mehrbod.data.table.EmployeesTable
 import com.mehrbod.data.table.convertToEmployeeDTO
 import com.mehrbod.model.EmployeeDTO
@@ -10,8 +12,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
+import org.jetbrains.exposed.v1.core.JoinType
+import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
 import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
+import org.jetbrains.exposed.v1.r2dbc.insert
 import org.jetbrains.exposed.v1.r2dbc.insertAndGetId
 import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
@@ -23,13 +29,52 @@ class DatabaseDataSource(
 ) {
     suspend fun createEmployee(employee: CreateEmployeeRequest): UUID = withContext(ioDispatcher) {
         suspendTransaction(db) {
-            EmployeesTable.insertAndGetId {
+            val id = EmployeesTable.insertAndGetId {
                 it[name] = employee.name
                 it[surname] = employee.surname
                 it[email] = employee.email
                 it[position] = employee.position
             }.value
+
+            EmployeeHierarchyTable.insert {
+                it[ancestor] = id
+                it[descendant] = id
+                it[distance] = 0
+            }
+
+            if (employee.supervisorId != null) {
+                val ancestors = EmployeeHierarchyTable.selectAll()
+                    .where { EmployeeHierarchyTable.descendant eq UUID.fromString(employee.supervisorId) }
+                    .map { it[EmployeeHierarchyTable.ancestor] to it[EmployeeHierarchyTable.distance] }
+
+                ancestors.collect { (ancId, dist) ->
+                    EmployeeHierarchyTable.insert {
+                        it[ancestor] = ancId
+                        it[descendant] = id
+                        it[distance] = dist + 1
+                    }
+                }
+            }
+
+            id
         }
+    }
+
+    suspend fun getSubordinates(managerId: String): List<EmployeeDTO> = suspendTransaction(db) {
+        (EmployeeHierarchyTable.join(EmployeesTable, JoinType.INNER, EmployeesTable.id, otherColumn = EmployeeHierarchyTable.descendant))
+            .selectAll()
+            .where { (EmployeeHierarchyTable.ancestor eq UUID.fromString(managerId)) and (EmployeeHierarchyTable.distance greater 0) }
+            .map { it.convertToEmployeeDTO() }
+            .toList()
+    }
+
+
+    suspend fun getSupervisors(employeeId: String): List<EmployeeDTO> = suspendTransaction(db) {
+        (EmployeeHierarchyTable.join(EmployeesTable, JoinType.INNER, EmployeesTable.id, otherColumn = EmployeeHierarchyTable.ancestor))
+            .selectAll()
+            .where { (EmployeeHierarchyTable.descendant eq UUID.fromString(employeeId)) and (EmployeeHierarchyTable.distance greater 0) }
+            .map { it.convertToEmployeeDTO() }
+            .toList()
     }
 
     suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {

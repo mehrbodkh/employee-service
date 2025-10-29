@@ -17,6 +17,15 @@ class EmployeeRepository(
         dbDataSource.createEmployee(employee)
     }
 
+    suspend fun getSubordinates(id: String) = withContext(ioDispatcher) {
+        dbDataSource.getSubordinates(id)
+    }
+
+
+    suspend fun getSupervisors(id: String) = withContext(ioDispatcher) {
+        dbDataSource.getSupervisors(id)
+    }
+
     suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
         dbDataSource.getById(id)
     }

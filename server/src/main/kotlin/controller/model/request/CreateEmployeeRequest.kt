@@ -8,4 +8,5 @@ data class CreateEmployeeRequest(
     val surname: String,
     val email: String,
     val position: String,
+    val supervisorId: String? = null,
 )
