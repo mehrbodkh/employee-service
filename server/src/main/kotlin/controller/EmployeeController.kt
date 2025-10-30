@@ -46,6 +46,11 @@ class EmployeeController(
             val response = employeeService.getEmployeeSubordinates(UUID.fromString(id))
             call.respond(response)
         }
+
+        get("/fetch-all") {
+            val response = employeeService.getAllEmployees()
+            call.respond(response)
+        }
     }
 
 }

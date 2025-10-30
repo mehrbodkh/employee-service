@@ -2,7 +2,7 @@ package com.mehrbod.data.datasource
 
 import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.model.EmployeeDTO
-import java.util.UUID
+import java.util.*
 
 interface EmployeeDataSource {
     suspend fun createEmployee(employee: EmployeeRequest): EmployeeDTO

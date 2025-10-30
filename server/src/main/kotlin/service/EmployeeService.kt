@@ -29,10 +29,16 @@ class EmployeeService(
 
     }
 
-    suspend fun getEmployeeSubordinates(id: UUID) = employeeRepository.getSubordinates(id.toString())
+    suspend fun getEmployeeSubordinates(id: UUID) = try {
+        employeeRepository.getSubordinates(id.toString())
+    } catch (_: Exception) {
+        throw EmployeeNotFoundException(id.toString())
+    }
 
     suspend fun getEmployeeAncestors(id: UUID) {
 
     }
+
+    suspend fun getAllEmployees() = employeeRepository.fetchAllEmployees()
 
 }

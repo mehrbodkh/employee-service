@@ -68,8 +68,7 @@ class DatabaseEmployeeDataSource(
                 employee.surname,
                 employee.email,
                 employee.position,
-                employee.supervisorId,
-                0
+                employee.supervisorId
             )
         }
     }

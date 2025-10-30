@@ -6,6 +6,14 @@ import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import kotlin.coroutines.EmptyCoroutineContext
 
+suspend fun measureRPS(requestCount: Int, block: suspend () -> Unit) {
+    val startTime = System.currentTimeMillis()
+    block()
+    val endTime = System.currentTimeMillis()
+    val totalTimeInSeconds = (endTime - startTime) / 1000.0
+    println("RPS: ${requestCount / totalTimeInSeconds}")
+}
+
 fun initializedTestApplication(block: suspend ApplicationTestBuilder.() -> Unit) = testApplication(
     EmptyCoroutineContext,
     {
@@ -13,7 +21,6 @@ fun initializedTestApplication(block: suspend ApplicationTestBuilder.() -> Unit)
         block()
     }
 )
-
 
 private fun ApplicationTestBuilder.initializeApplication() {
     environment {
@@ -25,3 +32,4 @@ private fun ApplicationTestBuilder.initializeApplication() {
         }
     }
 }
+

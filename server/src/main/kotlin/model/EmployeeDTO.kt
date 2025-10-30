@@ -10,5 +10,5 @@ data class EmployeeDTO(
     val email: String,
     val position: String,
     val supervisorId: String?,
-    val subordinatesCount: Int
+    val subordinatesCount: Int? = null
 )
