@@ -28,6 +28,10 @@ class EmployeeService(
         return employeeRepository.updateEmployee(updatedInfo)
     }
 
+    suspend fun deleteEmployee(id: UUID) {
+        return employeeRepository.deleteEmployee(id)
+    }
+
     suspend fun getEmployeeSubordinates(id: UUID) = try {
         employeeRepository.getSubordinates(id.toString())
     } catch (_: Exception) {

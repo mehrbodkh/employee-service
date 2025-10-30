@@ -26,6 +26,8 @@ class EmployeeRepository(
         dbDataSource.updateEmployee(updatedEmployee)
     }
 
+    suspend fun deleteEmployee(id: UUID) = dbDataSource.deleteEmployee(id)
+
     suspend fun getSubordinates(id: String) = withContext(ioDispatcher) {
         try {
             dbDataSource.getSubordinates(id)

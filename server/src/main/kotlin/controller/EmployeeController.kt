@@ -35,9 +35,16 @@ class EmployeeController(
             call.respond(HttpStatusCode.Created, response)
         }
 
-        put {
+        put("{id}") {
             val request = call.receive<EmployeeDTO>()
-            val response = employeeService.updateEmployee(request)
+            val id = call.parameters["id"]
+            val response = employeeService.updateEmployee(request.copy(id = id))
+            call.respond(HttpStatusCode.OK, response)
+        }
+
+        delete("{id}") {
+            val id = call.parameters["id"]
+            val response = employeeService.deleteEmployee(UUID.fromString(id))
             call.respond(HttpStatusCode.OK, response)
         }
 
