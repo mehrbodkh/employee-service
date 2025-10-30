@@ -1,6 +1,5 @@
 package com.mehrbod.data.repository
 
-import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.data.datasource.DatabaseEmployeeDataSource
 import com.mehrbod.model.EmployeeDTO
 import io.mockk.coEvery
@@ -27,7 +26,7 @@ class EmployeeRepositoryTest {
 
     @Test
     fun shouldCreateEmployee() = runTest {
-        val request = mockk<EmployeeRequest>()
+        val request = mockk<EmployeeDTO>()
         val employee = mockk<EmployeeDTO>()
         coEvery { dataSource.createEmployee(any()) } returns employee
 

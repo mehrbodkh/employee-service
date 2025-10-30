@@ -1,6 +1,5 @@
 package com.mehrbod.controller
 
-import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.util.initializedTestApplication
 import io.ktor.client.call.*
@@ -25,7 +24,7 @@ class EmployeeControllerTest {
         fun testInvalidRequestObject() = initializedTestApplication {
             val response = client.post(API_PREFIX) {
                 contentType(ContentType.Application.Json)
-                setBody(EmployeeRequest("", "test2", "test3", "test4"))
+                setBody(EmployeeDTO(name = "", surname = "test2", email = "test3", position = "test4"))
             }
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -37,7 +36,15 @@ class EmployeeControllerTest {
         fun testInvalidUUIDRequestObject() = initializedTestApplication {
             val response = client.post(API_PREFIX) {
                 contentType(ContentType.Application.Json)
-                setBody(EmployeeRequest("test1", "test2", "test3", "test4", "094324"))
+                setBody(
+                    EmployeeDTO(
+                        name = "test1",
+                        surname = "test2",
+                        email = "test3",
+                        position = "test4",
+                        supervisorId = "094324"
+                    )
+                )
             }
 
             assertEquals(HttpStatusCode.BadRequest, response.status)
@@ -50,7 +57,7 @@ class EmployeeControllerTest {
     fun testEmployeeCreation() = initializedTestApplication {
         val response = client.post(API_PREFIX) {
             contentType(ContentType.Application.Json)
-            setBody(EmployeeRequest("test1", "test2", "creation@gmail.com", "test4"))
+            setBody(EmployeeDTO(name = "test1", surname = "test2", email = "creation@gmail.com", position = "test4"))
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
@@ -62,7 +69,7 @@ class EmployeeControllerTest {
     fun testEmployeeRetrieval() = initializedTestApplication {
         var response = client.post(API_PREFIX) {
             contentType(ContentType.Application.Json)
-            setBody(EmployeeRequest("test1", "test2", "retrieval@gmail.com", "test4"))
+            setBody(EmployeeDTO(name = "test1", surname = "test2", email = "retrieval@gmail.com", position = "test4"))
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
