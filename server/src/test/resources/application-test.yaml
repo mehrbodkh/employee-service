@@ -1,0 +1,44 @@
+ktor:
+  environment: "DEV" # DEV, PROD
+  application:
+    modules:
+        - com.mehrbod.ApplicationKt.module
+  deployment:
+    port: 8080
+database:
+  h2:
+    host: "localhost"
+    driver: "h2"
+    protocol: "mem"
+    database: "test"
+    user: ""
+    password: ""
+  postgres:
+    url: "postgresql://localhost/default"
+    host: "localhost"
+    driver: "postgres"
+    protocol: "file"
+    database: "employee"
+    user: "username"
+    password: "password"
+kafka:
+  schema.registry.url:
+    - "SCHEMA_REGISTRY_URL"
+  common:
+    bootstrap.servers:
+      - "BOOTSTRAP_SERVERS"
+    # Additional attributes
+  admin:
+  # Additional attributes
+  consumer:
+    group.id: "my-group-id"
+    # Additional attributes
+  producer:
+    client.id: "my-client-id"
+    # Additional attributes
+  topics:
+    - name: my-topic
+      partitions: 1
+      configs:
+        message.timestamp.type: CreateTime
+        # Additional attributes

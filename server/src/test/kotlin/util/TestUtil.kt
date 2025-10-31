@@ -24,7 +24,7 @@ fun initializedTestApplication(block: suspend ApplicationTestBuilder.() -> Unit)
 
 private fun ApplicationTestBuilder.initializeApplication() {
     environment {
-        config = ApplicationConfig("application.yaml")
+        config = ApplicationConfig("application-test.yaml")
     }
     client = createClient {
         this.install(ContentNegotiation) {
