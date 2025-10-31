@@ -28,16 +28,16 @@ class EmployeeRepository(
 
     suspend fun deleteEmployee(id: UUID) = dbDataSource.delete(id)
 
-    suspend fun getSubordinates(id: String) = withContext(ioDispatcher) {
+    suspend fun getSubordinates(id: UUID) = withContext(ioDispatcher) {
         try {
             dbDataSource.getSubordinates(id)
         } catch (_: Exception) {
-            throw EmployeeNotFoundException(id)
+            throw EmployeeNotFoundException(id.toString())
         }
     }
 
 
-    suspend fun getSupervisors(id: String) = withContext(ioDispatcher) {
+    suspend fun getSupervisors(id: UUID) = withContext(ioDispatcher) {
         dbDataSource.getSupervisors(id)
     }
 

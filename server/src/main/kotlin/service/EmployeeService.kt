@@ -2,6 +2,7 @@ package com.mehrbod.service
 
 import com.mehrbod.data.repository.EmployeeRepository
 import com.mehrbod.exception.EmployeeNotFoundException
+import com.mehrbod.exception.OwnManagerException
 import com.mehrbod.model.EmployeeDTO
 import java.util.UUID
 
@@ -10,14 +11,14 @@ class EmployeeService(
 ) {
 
     suspend fun createEmployee(request: EmployeeDTO): EmployeeDTO {
-        val employee = employeeRepository.createEmployee(request)
-        val subordinatesCount = employeeRepository.getSubordinates(employee.id!!).count()
-        return employee.copy(subordinatesCount = subordinatesCount)
+        val savedEmployee = employeeRepository.createEmployee(request)
+        val subordinatesCount = employeeRepository.getSubordinates(UUID.fromString(savedEmployee.id)).count()
+        return savedEmployee.copy(subordinatesCount = subordinatesCount)
     }
 
     suspend fun getEmployee(id: UUID): EmployeeDTO {
         return employeeRepository.getById(id)?.let {
-            val subordinatesCount = employeeRepository.getSubordinates(it.id!!).count()
+            val subordinatesCount = employeeRepository.getSubordinates(id).count()
             it.copy(subordinatesCount = subordinatesCount)
         } ?: run {
             throw EmployeeNotFoundException(id.toString())
@@ -25,6 +26,9 @@ class EmployeeService(
     }
 
     suspend fun updateEmployee(updatedInfo: EmployeeDTO): EmployeeDTO {
+        if (updatedInfo.supervisorId == updatedInfo.id) {
+            throw OwnManagerException()
+        }
         return employeeRepository.updateEmployee(updatedInfo)
     }
 
@@ -33,13 +37,13 @@ class EmployeeService(
     }
 
     suspend fun getEmployeeSubordinates(id: UUID) = try {
-        employeeRepository.getSubordinates(id.toString())
+        employeeRepository.getSubordinates(id)
     } catch (_: Exception) {
         throw EmployeeNotFoundException(id.toString())
     }
 
     suspend fun getEmployeeAncestors(id: UUID) {
-
+        employeeRepository.getSupervisors(id)
     }
 
     suspend fun getAllEmployees() = employeeRepository.fetchAllEmployees()

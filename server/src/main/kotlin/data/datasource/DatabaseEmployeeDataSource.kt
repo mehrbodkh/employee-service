@@ -1,17 +1,10 @@
 package com.mehrbod.data.datasource
 
-import com.mehrbod.data.table.EmployeeHierarchyTable
-import com.mehrbod.data.table.EmployeesTable
-import com.mehrbod.data.table.convertToEmployeeDTO
-import com.mehrbod.data.table.insert
-import com.mehrbod.data.table.insertAndGet
-import com.mehrbod.data.table.update
+import com.mehrbod.data.table.*
 import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.model.EmployeeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
@@ -173,7 +166,7 @@ class DatabaseEmployeeDataSource(
         }
     }
 
-    override suspend fun getSubordinates(managerId: String): List<EmployeeDTO> = withContext(ioDispatcher) {
+    override suspend fun getSubordinates(managerId: UUID): List<EmployeeDTO> = withContext(ioDispatcher) {
         suspendTransaction(db) {
             (EmployeeHierarchyTable.join(
                 EmployeesTable,
@@ -182,14 +175,14 @@ class DatabaseEmployeeDataSource(
                 otherColumn = EmployeeHierarchyTable.descendant
             ))
                 .selectAll()
-                .where { (EmployeeHierarchyTable.ancestor eq UUID.fromString(managerId)) and (EmployeeHierarchyTable.distance greater 0) }
+                .where { (EmployeeHierarchyTable.ancestor eq managerId) and (EmployeeHierarchyTable.distance greater 0) }
                 .map { it.convertToEmployeeDTO() }
                 .toList()
         }
     }
 
 
-    override suspend fun getSupervisors(employeeId: String): List<EmployeeDTO> = withContext(ioDispatcher) {
+    override suspend fun getSupervisors(employeeId: UUID): List<EmployeeDTO> = withContext(ioDispatcher) {
         suspendTransaction(db) {
             (EmployeeHierarchyTable.join(
                 EmployeesTable,
@@ -198,7 +191,7 @@ class DatabaseEmployeeDataSource(
                 otherColumn = EmployeeHierarchyTable.ancestor
             ))
                 .selectAll()
-                .where { (EmployeeHierarchyTable.descendant eq UUID.fromString(employeeId)) and (EmployeeHierarchyTable.distance greater 0) }
+                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance greater 0) }
                 .map { it.convertToEmployeeDTO() }
                 .toList()
         }
