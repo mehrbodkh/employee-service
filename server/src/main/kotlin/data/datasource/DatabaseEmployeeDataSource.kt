@@ -20,6 +20,7 @@ class DatabaseEmployeeDataSource(
     private val db: R2dbcDatabase,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : EmployeeDataSource {
+
     override suspend fun save(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
             val insertedEmployee = EmployeesTable.insertAndGet(employee)
@@ -28,17 +29,13 @@ class DatabaseEmployeeDataSource(
             EmployeeHierarchyTable.insert(insertedId, insertedId, 0)
 
             if (employee.supervisorId != null) {
-                val ancestors = EmployeeHierarchyTable.selectAll()
+                EmployeeHierarchyTable.selectAll()
                     .where { EmployeeHierarchyTable.descendant eq UUID.fromString(employee.supervisorId) }
                     .map { it[EmployeeHierarchyTable.ancestor] to it[EmployeeHierarchyTable.distance] }
-
-                ancestors.collect { (ancId, dist) ->
-                    EmployeeHierarchyTable.insert {
-                        it[ancestor] = ancId
-                        it[descendant] = insertedId
-                        it[distance] = dist + 1
+                    .toList()
+                    .forEach { (ancId, dist) ->
+                        EmployeeHierarchyTable.insert(ancId, insertedId, dist + 1)
                     }
-                }
             }
 
             insertedEmployee
@@ -48,8 +45,7 @@ class DatabaseEmployeeDataSource(
     override suspend fun update(newEmployee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
             val id = UUID.fromString(newEmployee.id)
-            val currentEmployee = EmployeesTable
-                .selectAll()
+            val currentEmployee = EmployeesTable.selectAll()
                 .where { EmployeesTable.id eq id }
                 .singleOrNull()
                 ?.convertToEmployeeDTO()
@@ -81,13 +77,17 @@ class DatabaseEmployeeDataSource(
                 EmployeeHierarchyTable.selectAll()
                     .where { EmployeeHierarchyTable.descendant eq UUID.fromString(newSupervisorId) }
                     .map { it[EmployeeHierarchyTable.ancestor] to it[EmployeeHierarchyTable.distance] }
-                    .collect { (ancestor, depth) ->
+                    .toList()
+                    .forEach { (ancestor, depth) ->
                         subtree.forEach { descendant ->
                             val subDepth = EmployeeHierarchyTable.selectAll()
                                 .where { (EmployeeHierarchyTable.ancestor eq id) and (EmployeeHierarchyTable.descendant eq descendant) }
                                 .single()[EmployeeHierarchyTable.distance]
 
-                            EmployeeHierarchyTable.insert(ancestor, descendant, depth + subDepth + 1)
+                            try {
+                                EmployeeHierarchyTable.insert(ancestor, descendant, depth + subDepth + 1)
+                            } catch (_: Exception) {
+                            }
                         }
                     }
 
@@ -135,25 +135,23 @@ class DatabaseEmployeeDataSource(
                     }
 
                     if (supervisorId != null) {
-                        val newAncestors = EmployeeHierarchyTable
-                            .selectAll()
+                        EmployeeHierarchyTable.selectAll()
                             .where { EmployeeHierarchyTable.descendant eq supervisorId }
                             .map { it[EmployeeHierarchyTable.ancestor] to it[EmployeeHierarchyTable.distance] }
                             .toList()
+                            .forEach { (ancestor, depth) ->
+                                descendantSubtree.forEach { descendant ->
+                                    val subDepth = EmployeeHierarchyTable
+                                        .selectAll()
+                                        .where { (EmployeeHierarchyTable.ancestor eq subId) and (EmployeeHierarchyTable.descendant eq descendant) }
+                                        .single()[EmployeeHierarchyTable.distance]
 
-                        for ((ancestor, depth) in newAncestors) {
-                            descendantSubtree.forEach { descendant ->
-                                val subDepth = EmployeeHierarchyTable
-                                    .selectAll()
-                                    .where { (EmployeeHierarchyTable.ancestor eq subId) and (EmployeeHierarchyTable.descendant eq descendant) }
-                                    .single()[EmployeeHierarchyTable.distance]
-
-                                try {
-                                    EmployeeHierarchyTable.insert(ancestor, descendant, depth + subDepth + 1)
-                                } catch (_: Exception) {
+                                    try {
+                                        EmployeeHierarchyTable.insert(ancestor, descendant, depth + subDepth + 1)
+                                    } catch (_: Exception) {
+                                    }
                                 }
                             }
-                        }
                     }
                 }
 
