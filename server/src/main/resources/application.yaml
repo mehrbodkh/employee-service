@@ -1,5 +1,5 @@
 ktor:
-  environment: "DEV" # DEV, PROD
+  environment: "PROD" # DEV, PROD
   application:
     modules:
         - com.mehrbod.ApplicationKt.module
@@ -14,7 +14,7 @@ database:
     user: ""
     password: ""
   postgres:
-#    url: "postgresql://localhost/default"
+    url: "postgresql://localhost/default"
     host: "localhost"
     driver: "postgres"
     protocol: "file"

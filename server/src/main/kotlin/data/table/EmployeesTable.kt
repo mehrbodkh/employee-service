@@ -60,7 +60,7 @@ suspend fun EmployeesTable.insertAndGet(employee: EmployeeDTO) = insertAndGetId 
 }
 
 suspend fun EmployeesTable.update(employee: EmployeeDTO) = update(
-    where = { EmployeesTable.id eq id },
+    where = { EmployeesTable.id eq UUID.fromString(employee.id) },
 ) {
     it[name] = employee.name
     it[surname] = employee.surname
