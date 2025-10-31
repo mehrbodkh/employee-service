@@ -102,24 +102,20 @@ class EmployeeControllerTest {
 
         @Test
         fun `should change supervisor if supervisor is updated`() = initializedTestApplication {
-            val employee1 = createEmployee(EmployeeDTO(null, "name", "surname", "email", "position"))
-            val employee2 = createEmployee(EmployeeDTO(null, "name", "surname", "email2", "position", employee1.id))
+            val employee0 = createEmployee(EmployeeDTO(null, "name", "surname", "email0", "position"))
+            val employee1 = createEmployee(EmployeeDTO(null, "name", "surname", "email1", "position", employee0.id))
+            var employee2 = createEmployee(EmployeeDTO(null, "name", "surname", "email2", "position", employee1.id))
             var employee3 = createEmployee(EmployeeDTO(null, "name", "surname", "email3", "position", employee2.id))
             var employee4 = createEmployee(EmployeeDTO(null, "name", "surname", "email4", "position", employee3.id))
             var employee5 = createEmployee(EmployeeDTO(null, "name", "surname", "email5", "position", employee3.id))
 
-            println("Employee1 :${employee1.id}")
-            println("Employee2 :${employee2.id}")
-            println("Employee3 :${employee3.id}")
-            println("Employee4 :${employee4.id}")
-            println("Employee5 :${employee5.id}")
-
-            updateEmployee(employee2.id.toString(), employee2.copy(supervisorId = null))
+            employee2 = updateEmployee(employee2.id.toString(), employee2.copy(supervisorId = employee0.id))
 
             employee3 = getEmployee(employee3.id!!)
             employee4 = getEmployee(employee4.id!!)
             employee5 = getEmployee(employee5.id!!)
-            assertEquals(employee3.supervisorId, employee1.id)
+            assertEquals(employee2.supervisorId, employee0.id)
+            assertEquals(employee3.supervisorId, employee2.id)
             assertEquals(employee4.supervisorId, employee3.id)
             assertEquals(employee5.supervisorId, employee3.id)
         }
