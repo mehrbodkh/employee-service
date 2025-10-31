@@ -3,55 +3,36 @@ package com.mehrbod.data.datasource
 import com.mehrbod.data.table.EmployeeHierarchyTable
 import com.mehrbod.data.table.EmployeesTable
 import com.mehrbod.data.table.convertToEmployeeDTO
+import com.mehrbod.data.table.insert
+import com.mehrbod.data.table.insertAndGet
+import com.mehrbod.data.table.update
+import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.model.EmployeeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withContext
-import org.jetbrains.exposed.v1.core.JoinType
-import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityIDFunctionProvider
-import org.jetbrains.exposed.v1.core.eq
-import org.jetbrains.exposed.v1.core.greater
-import org.jetbrains.exposed.v1.core.inList
-import org.jetbrains.exposed.v1.core.or
-import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
-import org.jetbrains.exposed.v1.r2dbc.deleteWhere
-import org.jetbrains.exposed.v1.r2dbc.insert
-import org.jetbrains.exposed.v1.r2dbc.insertAndGetId
-import org.jetbrains.exposed.v1.r2dbc.insertIgnore
-import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.*
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
-import org.jetbrains.exposed.v1.r2dbc.update
 import java.util.*
 
 class DatabaseEmployeeDataSource(
     private val db: R2dbcDatabase,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : EmployeeDataSource {
-    override suspend fun createEmployee(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
+    override suspend fun save(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
-            val id = EmployeesTable.insertAndGetId {
-                it[name] = employee.name
-                it[surname] = employee.surname
-                it[email] = employee.email
-                it[position] = employee.position
-                it[supervisor] = employee.supervisorId?.let {
-                    EntityIDFunctionProvider.createEntityID(
-                        UUID.fromString(employee.supervisorId),
-                        EmployeesTable
-                    )
-                }
-            }.value
+            val insertedEmployee = EmployeesTable.insertAndGet(employee)
+            val insertedId = UUID.fromString(insertedEmployee.id)
 
-            EmployeeHierarchyTable.insert {
-                it[ancestor] = id
-                it[descendant] = id
-                it[distance] = 0
-            }
+            EmployeeHierarchyTable.insert(insertedId, insertedId, 0)
 
             if (employee.supervisorId != null) {
                 val ancestors = EmployeeHierarchyTable.selectAll()
@@ -61,67 +42,70 @@ class DatabaseEmployeeDataSource(
                 ancestors.collect { (ancId, dist) ->
                     EmployeeHierarchyTable.insert {
                         it[ancestor] = ancId
-                        it[descendant] = id
+                        it[descendant] = insertedId
                         it[distance] = dist + 1
                     }
                 }
             }
 
-            EmployeeDTO(
-                id.toString(),
-                employee.name,
-                employee.surname,
-                employee.email,
-                employee.position,
-                employee.supervisorId
-            )
+            insertedEmployee
         }
     }
 
-    override suspend fun updateEmployee(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
+    override suspend fun update(newEmployee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
-            val id = UUID.fromString(employee.id)
-            EmployeesTable.update(
-                where = { EmployeesTable.id eq id }
-            ) {
-                it[name] = employee.name
-                it[surname] = employee.surname
-                it[email] = employee.email
-                it[position] = employee.position
-                it[supervisor] = employee.supervisorId?.let {
-                    EntityIDFunctionProvider.createEntityID(
-                        UUID.fromString(employee.supervisorId),
-                        EmployeesTable
-                    )
-                }
+            val id = UUID.fromString(newEmployee.id)
+            val currentEmployee = EmployeesTable
+                .selectAll()
+                .where { EmployeesTable.id eq id }
+                .singleOrNull()
+                ?.convertToEmployeeDTO()
+
+            currentEmployee ?: run {
+                throw EmployeeNotFoundException(id.toString())
             }
 
-            if (employee.supervisorId != null) {
-                val ancestors = EmployeeHierarchyTable.selectAll()
-                    .where { EmployeeHierarchyTable.descendant eq UUID.fromString(employee.supervisorId) }
+            EmployeesTable.update(newEmployee)
+
+            val currentSupervisorId = currentEmployee.supervisorId
+            val newSupervisorId = newEmployee.supervisorId
+
+            if (newSupervisorId != null && newSupervisorId != currentSupervisorId) {
+                val subtree = EmployeeHierarchyTable.selectAll()
+                    .where { EmployeeHierarchyTable.ancestor eq id }
+                    .map { it[EmployeeHierarchyTable.descendant] }
+                    .toList()
+
+                val oldAncestors = EmployeeHierarchyTable.selectAll()
+                    .where { (EmployeeHierarchyTable.descendant eq id) and (EmployeeHierarchyTable.ancestor neq id) }
+                    .map { it[EmployeeHierarchyTable.ancestor] }
+                    .toList()
+
+                EmployeeHierarchyTable.deleteWhere {
+                    (EmployeeHierarchyTable.ancestor inList oldAncestors) and (EmployeeHierarchyTable.descendant inList subtree)
+                }
+
+                EmployeeHierarchyTable.selectAll()
+                    .where { EmployeeHierarchyTable.descendant eq UUID.fromString(newSupervisorId) }
                     .map { it[EmployeeHierarchyTable.ancestor] to it[EmployeeHierarchyTable.distance] }
+                    .collect { (ancestor, depth) ->
+                        subtree.forEach { descendant ->
+                            val subDepth = EmployeeHierarchyTable.selectAll()
+                                .where { (EmployeeHierarchyTable.ancestor eq id) and (EmployeeHierarchyTable.descendant eq descendant) }
+                                .single()[EmployeeHierarchyTable.distance]
 
-                ancestors.collect { (ancId, dist) ->
-                    EmployeeHierarchyTable.insert {
-                        it[ancestor] = ancId
-                        it[descendant] = id
-                        it[distance] = dist + 1
+                            EmployeeHierarchyTable.insert(ancestor, descendant, depth + subDepth + 1)
+                        }
                     }
-                }
+
+                EmployeesTable.update(newEmployee)
             }
 
-            EmployeeDTO(
-                id.toString(),
-                employee.name,
-                employee.surname,
-                employee.email,
-                employee.position,
-                employee.supervisorId
-            )
+            newEmployee
         }
     }
 
-    override suspend fun deleteEmployee(id: UUID) {
+    override suspend fun delete(id: UUID) {
         withContext(ioDispatcher) {
             suspendTransaction(db) {
                 val supervisorId = EmployeesTable.selectAll()
@@ -172,11 +156,7 @@ class DatabaseEmployeeDataSource(
                                     .single()[EmployeeHierarchyTable.distance]
 
                                 try {
-                                    EmployeeHierarchyTable.insert {
-                                        it[EmployeeHierarchyTable.ancestor] = ancestor
-                                        it[EmployeeHierarchyTable.descendant] = descendant
-                                        it[distance] = depth + subDepth + 1
-                                    }
+                                    EmployeeHierarchyTable.insert(ancestor, descendant, depth + subDepth + 1)
                                 } catch (_: Exception) {
                                 }
                             }

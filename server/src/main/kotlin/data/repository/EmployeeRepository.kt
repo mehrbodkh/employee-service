@@ -16,17 +16,17 @@ class EmployeeRepository(
 
     suspend fun createEmployee(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         try {
-            dbDataSource.createEmployee(employee)
+            dbDataSource.save(employee)
         } catch (_: Exception) {
             throw EmployeeCouldNotBeCreatedException()
         }
     }
 
     suspend fun updateEmployee(updatedEmployee: EmployeeDTO) = withContext(ioDispatcher) {
-        dbDataSource.updateEmployee(updatedEmployee)
+        dbDataSource.update(updatedEmployee)
     }
 
-    suspend fun deleteEmployee(id: UUID) = dbDataSource.deleteEmployee(id)
+    suspend fun deleteEmployee(id: UUID) = dbDataSource.delete(id)
 
     suspend fun getSubordinates(id: String) = withContext(ioDispatcher) {
         try {
