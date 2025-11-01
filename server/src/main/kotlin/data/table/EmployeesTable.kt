@@ -34,13 +34,16 @@ object EmployeesTable : UUIDTable("employees") {
     }
 }
 
+/**
+ * Due to lack of support for R2DBC on exposed DAO, some basic DAO like functions was needed
+ */
 fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
     id = this[EmployeesTable.id].value.toString(),
-    name = this[EmployeesTable.name],
-    surname = this[EmployeesTable.surname],
-    email = this[EmployeesTable.email],
-    position = this[EmployeesTable.position],
-    supervisorId = this[EmployeesTable.supervisor]?.value?.toString(),
+    name = this[name],
+    surname = this[surname],
+    email = this[email],
+    position = this[position],
+    supervisorId = this[supervisor]?.value?.toString(),
     subordinatesCount = 0,
 )
 

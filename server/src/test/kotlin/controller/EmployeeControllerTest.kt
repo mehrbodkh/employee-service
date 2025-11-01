@@ -9,7 +9,11 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.junit.jupiter.api.AfterEach
@@ -120,6 +124,33 @@ class EmployeeControllerTest {
             assertEquals(employee5.supervisorId, employee3.id)
         }
 
+    }
+
+    @Test
+    fun shouldWorkFineWithTransactions() = initializedTestApplication {
+        runTest {
+            val jobs = mutableListOf<Deferred<*>>()
+            repeat(1000) {
+                jobs.add(
+                    async {
+                        try {
+                            createEmployee(
+                                EmployeeDTO(
+                                    name = "name",
+                                    surname = "surname",
+                                    email = "email",
+                                    position = "position"
+                                )
+                            )
+                        } catch (_: Exception) {}
+                    }
+                )
+            }
+            jobs.joinAll()
+
+            val response = client.get("$API_PREFIX/fetch-all").body<List<EmployeeDTO>>()
+            assertEquals(1, response.size)
+        }
     }
 
     @Test

@@ -16,6 +16,10 @@ import org.jetbrains.exposed.v1.r2dbc.*
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import java.util.*
 
+/**
+ * `DatabaseEmployeeDataSource` is responsible for database interactions.
+ * Database for employees include closure table to store organization hierarchy.
+ */
 class DatabaseEmployeeDataSource(
     private val db: R2dbcDatabase,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -87,6 +91,9 @@ class DatabaseEmployeeDataSource(
                             try {
                                 EmployeeHierarchyTable.insert(ancestor, descendant, depth + subDepth + 1)
                             } catch (_: Exception) {
+                                /**
+                                 * Empty catch body, due to lack of support for insertIgnore on H2 postgres mode
+                                 */
                             }
                         }
                     }
@@ -103,10 +110,8 @@ class DatabaseEmployeeDataSource(
             suspendTransaction(db) {
                 val supervisorId = EmployeesTable.selectAll()
                     .where { EmployeesTable.id eq id }
-                    .map { it.convertToEmployeeDTO() }
-                    .singleOrNull()?.supervisorId?.let {
-                        UUID.fromString(it)
-                    }
+                    .map { it[EmployeesTable.supervisor] }
+                    .singleOrNull()?.value
 
                 val subordinates = EmployeesTable.selectAll()
                     .where { EmployeesTable.supervisor eq id }
@@ -141,14 +146,16 @@ class DatabaseEmployeeDataSource(
                             .toList()
                             .forEach { (ancestor, depth) ->
                                 descendantSubtree.forEach { descendant ->
-                                    val subDepth = EmployeeHierarchyTable
-                                        .selectAll()
+                                    val subDepth = EmployeeHierarchyTable.selectAll()
                                         .where { (EmployeeHierarchyTable.ancestor eq subId) and (EmployeeHierarchyTable.descendant eq descendant) }
                                         .single()[EmployeeHierarchyTable.distance]
 
                                     try {
                                         EmployeeHierarchyTable.insert(ancestor, descendant, depth + subDepth + 1)
                                     } catch (_: Exception) {
+                                        /**
+                                         * Empty catch body, due to lack of support for insertIgnore on H2 postgres mode
+                                         */
                                     }
                                 }
                             }
