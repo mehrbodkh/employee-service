@@ -1,6 +1,6 @@
 package com.mehrbod.controller
 
-import com.mehrbod.controller.model.request.EmployeeRequest
+import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.service.EmployeeService
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -14,7 +14,7 @@ class EmployeeController(
 ) : BaseController {
 
     override fun RequestValidationConfig.validator() {
-        validate<EmployeeRequest> {
+        validate<EmployeeDTO> {
             if (it.name.isBlank() || it.surname.isBlank() || it.email.isBlank() || it.position.isBlank()) {
                 return@validate ValidationResult.Invalid("Mandatory fields cannot be empty.")
             }
@@ -30,9 +30,22 @@ class EmployeeController(
     override fun Route.routes() = route("/employees") {
 
         post {
-            val request = call.receive<EmployeeRequest>()
+            val request = call.receive<EmployeeDTO>()
             val response = employeeService.createEmployee(request)
             call.respond(HttpStatusCode.Created, response)
+        }
+
+        put("{id}") {
+            val request = call.receive<EmployeeDTO>()
+            val id = call.parameters["id"]
+            val response = employeeService.updateEmployee(request.copy(id = id))
+            call.respond(HttpStatusCode.OK, response)
+        }
+
+        delete("{id}") {
+            val id = call.parameters["id"]
+            val response = employeeService.deleteEmployee(UUID.fromString(id))
+            call.respond(HttpStatusCode.OK, response)
         }
 
         get("{id}") {

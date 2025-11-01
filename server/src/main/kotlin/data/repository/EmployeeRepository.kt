@@ -1,6 +1,5 @@
 package com.mehrbod.data.repository
 
-import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.data.datasource.EmployeeDataSource
 import com.mehrbod.exception.EmployeeCouldNotBeCreatedException
 import com.mehrbod.exception.EmployeeNotFoundException
@@ -15,28 +14,30 @@ class EmployeeRepository(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
-    suspend fun createEmployee(employee: EmployeeRequest): EmployeeDTO = withContext(ioDispatcher) {
+    suspend fun createEmployee(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         try {
-            dbDataSource.createEmployee(employee)
+            dbDataSource.save(employee)
         } catch (_: Exception) {
             throw EmployeeCouldNotBeCreatedException()
         }
     }
 
-    suspend fun updateEmployee(id: String, updatedEmployee: EmployeeRequest) = withContext(ioDispatcher) {
-
+    suspend fun updateEmployee(updatedEmployee: EmployeeDTO) = withContext(ioDispatcher) {
+        dbDataSource.update(updatedEmployee)
     }
 
-    suspend fun getSubordinates(id: String) = withContext(ioDispatcher) {
+    suspend fun deleteEmployee(id: UUID) = dbDataSource.delete(id)
+
+    suspend fun getSubordinates(id: UUID) = withContext(ioDispatcher) {
         try {
             dbDataSource.getSubordinates(id)
         } catch (_: Exception) {
-            throw EmployeeNotFoundException(id)
+            throw EmployeeNotFoundException(id.toString())
         }
     }
 
 
-    suspend fun getSupervisors(id: String) = withContext(ioDispatcher) {
+    suspend fun getSupervisors(id: UUID) = withContext(ioDispatcher) {
         dbDataSource.getSupervisors(id)
     }
 

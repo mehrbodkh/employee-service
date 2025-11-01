@@ -1,5 +1,5 @@
 ktor:
-  environment: "PROD" # DEV, PROD
+  environment: "DEV" # DEV, PROD
   application:
     modules:
         - com.mehrbod.ApplicationKt.module

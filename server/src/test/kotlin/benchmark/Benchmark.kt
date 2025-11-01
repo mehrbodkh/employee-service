@@ -1,7 +1,6 @@
 package com.mehrbod.benchmark
 
 import com.mehrbod.controller.EmployeeControllerTest.Companion.API_PREFIX
-import com.mehrbod.controller.model.request.EmployeeRequest
 import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.util.initializedTestApplication
 import com.mehrbod.util.measureRPS
@@ -28,7 +27,7 @@ class Benchmark {
                         val randomUUID = UUID.randomUUID()
                         client.post(API_PREFIX) {
                             contentType(ContentType.Application.Json)
-                            setBody(EmployeeRequest("test1", "test2", "$randomUUID@gmail.com", "test4"))
+                            setBody(EmployeeDTO(name = "test1", surname = "test2", email = "$randomUUID@gmail.com", position = "test4"))
                         }
                     })
                 }
