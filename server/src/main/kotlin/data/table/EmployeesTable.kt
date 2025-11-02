@@ -34,9 +34,6 @@ object EmployeesTable : UUIDTable("employees") {
     }
 }
 
-/**
- * Due to lack of support for R2DBC on exposed DAO, some basic DAO like functions was needed
- */
 fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
     id = this[EmployeesTable.id].value.toString(),
     name = this[name],
@@ -47,6 +44,9 @@ fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
     subordinatesCount = 0,
 )
 
+/**
+ * Due to lack of support for R2DBC on exposed DAO, some basic DAO like functions was needed
+ */
 suspend fun EmployeesTable.insertAndGet(employee: EmployeeDTO) = insertAndGetId {
     it[name] = employee.name
     it[surname] = employee.surname

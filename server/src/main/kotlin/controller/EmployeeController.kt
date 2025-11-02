@@ -54,12 +54,6 @@ class EmployeeController(
             call.respond(response)
         }
 
-        get("/{id}/subtree") {
-            val id = call.parameters["id"] ?: return@get call.respond(mapOf("error" to "bad id"))
-            val response = employeeService.getEmployeeSubordinates(UUID.fromString(id))
-            call.respond(response)
-        }
-
         get("/fetch-all") {
             val response = employeeService.getAllEmployees()
             call.respond(response)

@@ -3,8 +3,12 @@ package com.mehrbod.data.datasource
 import com.mehrbod.data.table.*
 import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.model.EmployeeDTO
+import com.mehrbod.model.EmployeeNodeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
@@ -22,7 +26,8 @@ import java.util.*
  */
 class DatabaseEmployeeDataSource(
     private val db: R2dbcDatabase,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : EmployeeDataSource {
 
     override suspend fun save(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
@@ -171,19 +176,45 @@ class DatabaseEmployeeDataSource(
         }
     }
 
-    override suspend fun getSubordinates(managerId: UUID): List<EmployeeDTO> = withContext(ioDispatcher) {
-        suspendTransaction(db) {
-            (EmployeeHierarchyTable.join(
-                EmployeesTable,
-                JoinType.INNER,
-                EmployeesTable.id,
-                otherColumn = EmployeeHierarchyTable.descendant
-            ))
-                .selectAll()
-                .where { (EmployeeHierarchyTable.ancestor eq managerId) and (EmployeeHierarchyTable.distance greater 0) }
-                .map { it.convertToEmployeeDTO() }
-                .toList()
+    override suspend fun getSubordinates(managerId: UUID, depth: Int): List<EmployeeNodeDTO> =
+        withContext(ioDispatcher) {
+            suspendTransaction(db) {
+                (EmployeeHierarchyTable.join(
+                    EmployeesTable,
+                    JoinType.INNER,
+                    EmployeesTable.id,
+                    otherColumn = EmployeeHierarchyTable.descendant
+                ))
+                    .selectAll()
+                    .where {
+                        EmployeeHierarchyTable.ancestor eq managerId and
+                                EmployeeHierarchyTable.distance.between(0, depth)
+                    }
+                    .flowOn(ioDispatcher)
+                    .buildEmployeeNodeTree(managerId.toString())
+                    .flowOn(defaultDispatcher)
+                    .toList()
+            }
         }
+
+    private fun Flow<ResultRow>.buildEmployeeNodeTree(rootId: String, depth: Int = 0): Flow<EmployeeNodeDTO> {
+        return filter {
+            it[EmployeeHierarchyTable.distance] == depth
+        }
+            .map { it.convertToEmployeeDTO() }
+            .filter {
+                if (depth == 0) true else it.supervisorId == rootId
+            }
+            .map { employee ->
+                EmployeeNodeDTO(
+                    employee.id.toString(),
+                    employee.name,
+                    employee.surname,
+                    employee.position,
+                    employee.email,
+                    buildEmployeeNodeTree(employee.id.toString(), depth + 1).toList()
+                )
+            }
     }
 
 
