@@ -39,6 +39,10 @@ class EmployeeRepository(
         dbDataSource.getById(id)
     }
 
+    suspend fun getRootSubordinates(depth: Int) = withContext(ioDispatcher) {
+        dbDataSource.getRootSubordinates(depth)
+    }
+
     suspend fun fetchAllEmployees(): List<EmployeeDTO> = withContext(ioDispatcher) {
         dbDataSource.fetchAllEmployees()
     }
