@@ -9,5 +9,5 @@ data class EmployeeNodeDTO(
     val surname: String,
     val position: String,
     val email: String,
-    val subordinates: List<EmployeeNodeDTO>
+    val supervisorId: String?,
 )

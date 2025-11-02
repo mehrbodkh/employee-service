@@ -2,9 +2,7 @@ package com.mehrbod.data.repository
 
 import com.mehrbod.data.datasource.EmployeeDataSource
 import com.mehrbod.exception.EmployeeCouldNotBeCreatedException
-import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.model.EmployeeDTO
-import io.ktor.server.engine.logError
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,9 +31,8 @@ class EmployeeRepository(
         dbDataSource.getSubordinates(id, depth)
     }
 
-
-    suspend fun getSupervisors(id: UUID) = withContext(ioDispatcher) {
-        dbDataSource.getSupervisors(id)
+    suspend fun getSupervisors(id: UUID, depth: Int) = withContext(ioDispatcher) {
+        dbDataSource.getSupervisors(id, depth)
     }
 
     suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {

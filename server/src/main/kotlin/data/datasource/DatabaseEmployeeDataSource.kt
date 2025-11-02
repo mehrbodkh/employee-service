@@ -6,18 +6,15 @@ import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.model.EmployeeNodeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityIDFunctionProvider
-import org.jetbrains.exposed.v1.r2dbc.*
+import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
+import org.jetbrains.exposed.v1.r2dbc.update
 import java.util.*
 
 /**
@@ -188,37 +185,17 @@ class DatabaseEmployeeDataSource(
                     .selectAll()
                     .where {
                         EmployeeHierarchyTable.ancestor eq managerId and
-                                EmployeeHierarchyTable.distance.between(0, depth)
+                                EmployeeHierarchyTable.distance.between(1, depth)
                     }
                     .flowOn(ioDispatcher)
-                    .buildEmployeeNodeTree(managerId.toString())
+                    .map { it.convertToEmployeeNodeDTO() }
                     .flowOn(defaultDispatcher)
                     .toList()
             }
         }
 
-    private fun Flow<ResultRow>.buildEmployeeNodeTree(rootId: String, depth: Int = 0): Flow<EmployeeNodeDTO> {
-        return filter {
-            it[EmployeeHierarchyTable.distance] == depth
-        }
-            .map { it.convertToEmployeeDTO() }
-            .filter {
-                if (depth == 0) true else it.supervisorId == rootId
-            }
-            .map { employee ->
-                EmployeeNodeDTO(
-                    employee.id.toString(),
-                    employee.name,
-                    employee.surname,
-                    employee.position,
-                    employee.email,
-                    buildEmployeeNodeTree(employee.id.toString(), depth + 1).toList()
-                )
-            }
-    }
 
-
-    override suspend fun getSupervisors(employeeId: UUID): List<EmployeeDTO> = withContext(ioDispatcher) {
+    override suspend fun getSupervisors(employeeId: UUID, depth: Int): List<EmployeeNodeDTO> = withContext(ioDispatcher) {
         suspendTransaction(db) {
             (EmployeeHierarchyTable.join(
                 EmployeesTable,
@@ -227,8 +204,27 @@ class DatabaseEmployeeDataSource(
                 otherColumn = EmployeeHierarchyTable.ancestor
             ))
                 .selectAll()
-                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance greater 0) }
+                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance.between(1, depth)) }
+                .flowOn(ioDispatcher)
+                .map { it.convertToEmployeeNodeDTO() }
+                .flowOn(defaultDispatcher)
+                .toList()
+        }
+    }
+
+    override suspend fun getSupervisors2(employeeId: UUID, depth: Int): List<EmployeeDTO> = withContext(ioDispatcher) {
+        suspendTransaction(db) {
+            (EmployeeHierarchyTable.join(
+                EmployeesTable,
+                JoinType.INNER,
+                EmployeesTable.id,
+                otherColumn = EmployeeHierarchyTable.ancestor
+            ))
+                .selectAll()
+                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance.between(0, depth)) }
+                .flowOn(ioDispatcher)
                 .map { it.convertToEmployeeDTO() }
+                .flowOn(defaultDispatcher)
                 .toList()
         }
     }

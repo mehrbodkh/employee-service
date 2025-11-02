@@ -15,6 +15,13 @@ class OrganizationController(
 
     override fun Route.routes() = route("/org") {
 
+        get("/{id}/supervisors") {
+            val depth = call.queryParameters["depth"]?.toInt() ?: 1
+            val id = call.parameters["id"] ?: ""
+            val result = organizationService.getSupervisors(UUID.fromString(id), depth)
+            call.respond(result)
+        }
+
         get("/{id}/hierarchy") {
             val depth = call.queryParameters["depth"]?.toInt() ?: 1
             val id = call.parameters["id"] ?: ""

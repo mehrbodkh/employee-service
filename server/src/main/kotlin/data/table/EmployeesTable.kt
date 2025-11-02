@@ -6,6 +6,7 @@ import com.mehrbod.data.table.EmployeesTable.position
 import com.mehrbod.data.table.EmployeesTable.supervisor
 import com.mehrbod.data.table.EmployeesTable.surname
 import com.mehrbod.model.EmployeeDTO
+import com.mehrbod.model.EmployeeNodeDTO
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -42,6 +43,15 @@ fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
     position = this[position],
     supervisorId = this[supervisor]?.value?.toString(),
     subordinatesCount = 0,
+)
+
+fun ResultRow.convertToEmployeeNodeDTO() = EmployeeNodeDTO(
+    id = this[EmployeesTable.id].value.toString(),
+    name = this[name],
+    surname = this[surname],
+    email = this[email],
+    position = this[position],
+    supervisorId = this[supervisor]?.value?.toString(),
 )
 
 /**
