@@ -1,5 +1,6 @@
 package com.mehrbod.data.table
 
+import com.mehrbod.common.getUuidOrThrow
 import com.mehrbod.data.table.EmployeesTable.email
 import com.mehrbod.data.table.EmployeesTable.name
 import com.mehrbod.data.table.EmployeesTable.position
@@ -17,7 +18,6 @@ import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import org.jetbrains.exposed.v1.r2dbc.insertAndGetId
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.jetbrains.exposed.v1.r2dbc.update
-import java.util.*
 
 object EmployeesTable : UUIDTable("employees") {
     val name = varchar("name", length = 50)
@@ -64,7 +64,7 @@ suspend fun EmployeesTable.insertAndGet(employee: EmployeeDTO) = insertAndGetId 
     it[position] = employee.position
     it[supervisor] = employee.supervisorId?.let {
         EntityIDFunctionProvider.createEntityID(
-            UUID.fromString(employee.supervisorId),
+            employee.supervisorId.getUuidOrThrow(),
             EmployeesTable
         )
     }
@@ -73,7 +73,7 @@ suspend fun EmployeesTable.insertAndGet(employee: EmployeeDTO) = insertAndGetId 
 }
 
 suspend fun EmployeesTable.update(employee: EmployeeDTO) = update(
-    where = { EmployeesTable.id eq UUID.fromString(employee.id) },
+    where = { EmployeesTable.id eq employee.id.getUuidOrThrow() },
 ) {
     it[name] = employee.name
     it[surname] = employee.surname
@@ -81,7 +81,7 @@ suspend fun EmployeesTable.update(employee: EmployeeDTO) = update(
     it[position] = employee.position
     it[supervisor] = employee.supervisorId?.let {
         EntityIDFunctionProvider.createEntityID(
-            UUID.fromString(employee.supervisorId),
+            employee.supervisorId.getUuidOrThrow(),
             EmployeesTable
         )
     }
