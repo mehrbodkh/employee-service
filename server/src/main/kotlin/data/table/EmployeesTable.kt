@@ -6,6 +6,7 @@ import com.mehrbod.data.table.EmployeesTable.position
 import com.mehrbod.data.table.EmployeesTable.supervisor
 import com.mehrbod.data.table.EmployeesTable.surname
 import com.mehrbod.model.EmployeeDTO
+import com.mehrbod.model.EmployeeNodeDTO
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
@@ -34,9 +35,6 @@ object EmployeesTable : UUIDTable("employees") {
     }
 }
 
-/**
- * Due to lack of support for R2DBC on exposed DAO, some basic DAO like functions was needed
- */
 fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
     id = this[EmployeesTable.id].value.toString(),
     name = this[name],
@@ -47,6 +45,18 @@ fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
     subordinatesCount = 0,
 )
 
+fun ResultRow.convertToEmployeeNodeDTO() = EmployeeNodeDTO(
+    id = this[EmployeesTable.id].value.toString(),
+    name = this[name],
+    surname = this[surname],
+    email = this[email],
+    position = this[position],
+    supervisorId = this[supervisor]?.value?.toString(),
+)
+
+/**
+ * Due to lack of support for R2DBC on exposed DAO, some basic DAO like functions was needed
+ */
 suspend fun EmployeesTable.insertAndGet(employee: EmployeeDTO) = insertAndGetId {
     it[name] = employee.name
     it[surname] = employee.surname

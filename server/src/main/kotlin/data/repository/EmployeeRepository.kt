@@ -2,7 +2,6 @@ package com.mehrbod.data.repository
 
 import com.mehrbod.data.datasource.EmployeeDataSource
 import com.mehrbod.exception.EmployeeCouldNotBeCreatedException
-import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.model.EmployeeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -28,21 +27,20 @@ class EmployeeRepository(
 
     suspend fun deleteEmployee(id: UUID) = dbDataSource.delete(id)
 
-    suspend fun getSubordinates(id: UUID) = withContext(ioDispatcher) {
-        try {
-            dbDataSource.getSubordinates(id)
-        } catch (_: Exception) {
-            throw EmployeeNotFoundException(id.toString())
-        }
+    suspend fun getSubordinates(id: UUID, depth: Int = 1) = withContext(ioDispatcher) {
+        dbDataSource.getSubordinates(id, depth)
     }
 
-
-    suspend fun getSupervisors(id: UUID) = withContext(ioDispatcher) {
-        dbDataSource.getSupervisors(id)
+    suspend fun getSupervisors(id: UUID, depth: Int) = withContext(ioDispatcher) {
+        dbDataSource.getSupervisors(id, depth)
     }
 
     suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
         dbDataSource.getById(id)
+    }
+
+    suspend fun getRootSubordinates(depth: Int) = withContext(ioDispatcher) {
+        dbDataSource.getRootSubordinates(depth)
     }
 
     suspend fun fetchAllEmployees(): List<EmployeeDTO> = withContext(ioDispatcher) {

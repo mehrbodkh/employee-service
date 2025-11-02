@@ -34,6 +34,6 @@ val dataModule = DI.Module("dbModule") {
     }
 
     bindSingleton<EmployeeDataSource>("database") {
-        DatabaseEmployeeDataSource(instance(), instance("io"))
+        DatabaseEmployeeDataSource(instance(), instance("io"), instance("default"))
     }
 }

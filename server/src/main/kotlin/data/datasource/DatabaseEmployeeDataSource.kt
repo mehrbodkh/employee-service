@@ -3,17 +3,18 @@ package com.mehrbod.data.datasource
 import com.mehrbod.data.table.*
 import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.model.EmployeeDTO
+import com.mehrbod.model.EmployeeNodeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityIDFunctionProvider
-import org.jetbrains.exposed.v1.r2dbc.*
+import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
+import org.jetbrains.exposed.v1.r2dbc.deleteWhere
+import org.jetbrains.exposed.v1.r2dbc.selectAll
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
+import org.jetbrains.exposed.v1.r2dbc.update
 import java.util.*
 
 /**
@@ -22,7 +23,8 @@ import java.util.*
  */
 class DatabaseEmployeeDataSource(
     private val db: R2dbcDatabase,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : EmployeeDataSource {
 
     override suspend fun save(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
@@ -171,23 +173,41 @@ class DatabaseEmployeeDataSource(
         }
     }
 
-    override suspend fun getSubordinates(managerId: UUID): List<EmployeeDTO> = withContext(ioDispatcher) {
-        suspendTransaction(db) {
-            (EmployeeHierarchyTable.join(
-                EmployeesTable,
-                JoinType.INNER,
-                EmployeesTable.id,
-                otherColumn = EmployeeHierarchyTable.descendant
-            ))
-                .selectAll()
-                .where { (EmployeeHierarchyTable.ancestor eq managerId) and (EmployeeHierarchyTable.distance greater 0) }
-                .map { it.convertToEmployeeDTO() }
-                .toList()
+    override suspend fun getSubordinates(managerId: UUID, depth: Int): List<EmployeeNodeDTO> =
+        withContext(ioDispatcher) {
+            suspendTransaction(db) {
+                (EmployeeHierarchyTable.join(
+                    EmployeesTable,
+                    JoinType.INNER,
+                    EmployeesTable.id,
+                    otherColumn = EmployeeHierarchyTable.descendant
+                ))
+                    .selectAll()
+                    .where {
+                        EmployeeHierarchyTable.ancestor eq managerId and
+                                EmployeeHierarchyTable.distance.between(1, depth)
+                    }
+                    .flowOn(ioDispatcher)
+                    .map { it.convertToEmployeeNodeDTO() }
+                    .flowOn(defaultDispatcher)
+                    .toList()
+            }
+        }
+
+    override suspend fun getRootSubordinates(depth: Int): List<EmployeeNodeDTO> {
+        return suspendTransaction(db) {
+            val rootEmployees = EmployeesTable.selectAll()
+                .where { EmployeesTable.supervisor.isNull() }
+
+            rootEmployees.map {
+                val id = it[EmployeesTable.id].value
+                getSubordinates(id, depth)
+            }.toList().flatten()
         }
     }
 
 
-    override suspend fun getSupervisors(employeeId: UUID): List<EmployeeDTO> = withContext(ioDispatcher) {
+    override suspend fun getSupervisors(employeeId: UUID, depth: Int): List<EmployeeNodeDTO> = withContext(ioDispatcher) {
         suspendTransaction(db) {
             (EmployeeHierarchyTable.join(
                 EmployeesTable,
@@ -196,8 +216,10 @@ class DatabaseEmployeeDataSource(
                 otherColumn = EmployeeHierarchyTable.ancestor
             ))
                 .selectAll()
-                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance greater 0) }
-                .map { it.convertToEmployeeDTO() }
+                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance.between(1, depth)) }
+                .flowOn(ioDispatcher)
+                .map { it.convertToEmployeeNodeDTO() }
+                .flowOn(defaultDispatcher)
                 .toList()
         }
     }

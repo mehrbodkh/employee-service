@@ -36,16 +36,6 @@ class EmployeeService(
         return employeeRepository.deleteEmployee(id)
     }
 
-    suspend fun getEmployeeSubordinates(id: UUID) = try {
-        employeeRepository.getSubordinates(id)
-    } catch (_: Exception) {
-        throw EmployeeNotFoundException(id.toString())
-    }
-
-    suspend fun getEmployeeAncestors(id: UUID) {
-        employeeRepository.getSupervisors(id)
-    }
-
     suspend fun getAllEmployees() = employeeRepository.fetchAllEmployees()
 
 }

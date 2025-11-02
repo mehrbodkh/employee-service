@@ -1,0 +1,39 @@
+package com.mehrbod.controller
+
+import com.mehrbod.service.OrganizationService
+import io.ktor.server.plugins.requestvalidation.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import java.util.*
+
+class OrganizationController(
+    private val organizationService: OrganizationService,
+) : BaseController {
+
+    override fun RequestValidationConfig.validator() {
+    }
+
+    override fun Route.routes() = route("/org") {
+
+        get("/root") {
+            val depth = (call.queryParameters["depth"]?.toInt() ?: 1).coerceIn(1..10)
+            val result = organizationService.getRootsSubordinates(depth)
+            call.respond(result)
+        }
+
+        get("/{id}/supervisors") {
+            val depth = (call.queryParameters["depth"]?.toInt() ?: 1).coerceIn(1..10)
+            val id = call.parameters["id"]
+            val result = organizationService.getSupervisors(UUID.fromString(id), depth)
+            call.respond(result)
+        }
+
+        get("/{id}/hierarchy") {
+            val depth = (call.queryParameters["depth"]?.toInt() ?: 1).coerceIn(1..10)
+            val id = call.parameters["id"] ?: ""
+            val result = organizationService.getSubordinates(UUID.fromString(id), depth)
+            call.respond(result)
+        }
+    }
+
+}
