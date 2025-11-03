@@ -1,9 +1,14 @@
 package com.mehrbod.data.table
 
+import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.between
 import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
+import org.jetbrains.exposed.v1.datetime.timestampWithTimeZone
 
 object PerformanceReviewsTable : UUIDTable("performance_reviews") {
+    val employee = reference("employee_id", EmployeesTable, onDelete = ReferenceOption.CASCADE)
+    val reviewDate = timestampWithTimeZone("review_date")
+
     val performance = integer("performance").check { it.between(1, 10) }
     val softSkills = integer("soft_skills").check { it.between(1, 10) }
     val independence = integer("independence").check { it.between(1, 10) }
