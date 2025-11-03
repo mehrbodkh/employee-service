@@ -1,5 +1,6 @@
 package com.mehrbod.controller
 
+import com.mehrbod.common.getUuidOrThrow
 import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.service.EmployeeService
 import io.ktor.http.*
@@ -7,7 +8,6 @@ import io.ktor.server.plugins.requestvalidation.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import java.util.*
 
 class EmployeeController(
     private val employeeService: EmployeeService,
@@ -19,7 +19,7 @@ class EmployeeController(
                 return@validate ValidationResult.Invalid("Mandatory fields cannot be empty.")
             }
             try {
-                it.supervisorId?.let { supervisorId -> UUID.fromString(supervisorId) }
+                it.supervisorId?.getUuidOrThrow()
             } catch (_: Exception) {
                 return@validate ValidationResult.Invalid("Invalid supervisorId: ${it.supervisorId}")
             }
@@ -37,20 +37,20 @@ class EmployeeController(
 
         put("{id}") {
             val request = call.receive<EmployeeDTO>()
-            val id = call.parameters["id"]
-            val response = employeeService.updateEmployee(request.copy(id = id))
+            val id = call.parameters["id"].getUuidOrThrow()
+            val response = employeeService.updateEmployee(request.copy(id = id.toString()))
             call.respond(HttpStatusCode.OK, response)
         }
 
         delete("{id}") {
-            val id = call.parameters["id"]
-            val response = employeeService.deleteEmployee(UUID.fromString(id))
+            val id = call.parameters["id"].getUuidOrThrow()
+            val response = employeeService.deleteEmployee(id)
             call.respond(HttpStatusCode.OK, response)
         }
 
         get("{id}") {
-            val id = call.parameters["id"] ?: ""
-            val response = employeeService.getEmployee(UUID.fromString(id))
+            val id = call.parameters["id"].getUuidOrThrow()
+            val response = employeeService.getEmployee(id)
             call.respond(response)
         }
 

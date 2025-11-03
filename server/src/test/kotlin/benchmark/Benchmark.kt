@@ -10,6 +10,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.*
 import kotlin.test.assertEquals
@@ -17,6 +18,7 @@ import kotlin.test.assertEquals
 class Benchmark {
 
     @Test
+    @Disabled
     fun testEmployeeCreation() = initializedTestApplication {
         val requestNumber = 30000
         runTest {

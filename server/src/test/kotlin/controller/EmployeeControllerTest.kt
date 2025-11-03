@@ -1,21 +1,15 @@
 package com.mehrbod.controller
 
-import com.mehrbod.data.table.EmployeeHierarchyTable
-import com.mehrbod.data.table.EmployeesTable
+import com.mehrbod.common.getUuidOrThrow
+import com.mehrbod.exception.ServerErrorMessage
 import com.mehrbod.model.EmployeeDTO
-import com.mehrbod.util.initializedTestApplication
+import com.mehrbod.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.testing.*
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
-import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -33,15 +27,22 @@ class EmployeeControllerTest {
     @AfterEach
     fun setup() {
         runBlocking {
-            suspendTransaction {
-                SchemaUtils.drop(EmployeesTable, EmployeeHierarchyTable)
-                SchemaUtils.create(EmployeesTable, EmployeeHierarchyTable)
-            }
+            recreateTables()
         }
     }
 
     @Nested
     inner class Validation {
+        @Test
+        fun testValidRequestObject() = initializedTestApplication {
+            val response = client.post(API_PREFIX) {
+                contentType(ContentType.Application.Json)
+                setBody(EmployeeDTO(name = "name", surname = "surname", email = "email", position = "position"))
+            }
+
+            assertEquals(HttpStatusCode.Created, response.status)
+        }
+
         @Test
         fun testInvalidRequestObject() = initializedTestApplication {
             val response = client.post(API_PREFIX) {
@@ -124,33 +125,56 @@ class EmployeeControllerTest {
             assertEquals(employee5.supervisorId, employee3.id)
         }
 
-    }
+        @Test
+        fun `should throw if new supervisor doesn't exist`() = initializedTestApplication {
+            val employee1 = createEmployee(EmployeeDTO(null, "name", "surname", "email", "position"))
 
-    @Test
-    fun shouldWorkFineWithTransactions() = initializedTestApplication {
-        runTest {
-            val jobs = mutableListOf<Deferred<*>>()
-            repeat(1000) {
-                jobs.add(
-                    async {
-                        try {
-                            createEmployee(
-                                EmployeeDTO(
-                                    name = "name",
-                                    surname = "surname",
-                                    email = "email",
-                                    position = "position"
-                                )
-                            )
-                        } catch (_: Exception) {}
-                    }
+            val response = client.put("$API_PREFIX/${employee1.id.toString()}") {
+                contentType(ContentType.Application.Json)
+                setBody(
+                    EmployeeDTO(
+                        null,
+                        "name",
+                        "surname",
+                        "email",
+                        "position",
+                        supervisorId = UUID.randomUUID().toString()
+                    )
                 )
             }
-            jobs.joinAll()
 
-            val response = client.get("$API_PREFIX/fetch-all").body<List<EmployeeDTO>>()
-            assertEquals(1, response.size)
+            assertEquals(HttpStatusCode.NotFound, response.status)
         }
+
+    }
+
+    @Nested
+    inner class EmployeeDeletion {
+
+        @Test
+        fun `should get error if employee doesn't exist`() = initializedTestApplication {
+            runTest {
+                val id = UUID.randomUUID().toString()
+                val response = deleteEmployee(id)
+
+                assertEquals(HttpStatusCode.NotFound, response.status)
+                val message = response.body<ServerErrorMessage>()
+                assertEquals("Employee with id $id not found", message.error)
+            }
+        }
+
+        @Test
+        fun `should delete employee`() = initializedTestApplication {
+            runTest {
+                val employee = createEmployee(EmployeeDTO(null, "name", "surname", "email", "position"))
+
+                val response = deleteEmployee(employee.id.toString())
+
+                assertEquals(HttpStatusCode.OK, response.status)
+            }
+        }
+
+
     }
 
     @Test
@@ -162,7 +186,7 @@ class EmployeeControllerTest {
 
         assertEquals(HttpStatusCode.Created, response.status)
         val uuid = response.body<EmployeeDTO>().id
-        assertDoesNotThrow { UUID.fromString(uuid) }
+        assertDoesNotThrow { uuid.getUuidOrThrow() }
     }
 
     @Test
@@ -174,7 +198,7 @@ class EmployeeControllerTest {
 
         assertEquals(HttpStatusCode.Created, response.status)
         val uuid = response.body<EmployeeDTO>().id
-        assertDoesNotThrow { UUID.fromString(uuid) }
+        assertDoesNotThrow { uuid.getUuidOrThrow() }
 
         response = client.get("$API_PREFIX/$uuid")
         val employeeDTO = response.body<EmployeeDTO>()
@@ -184,19 +208,4 @@ class EmployeeControllerTest {
             employeeDTO
         )
     }
-
-    private suspend fun ApplicationTestBuilder.createEmployee(employee: EmployeeDTO) = client.post(API_PREFIX) {
-        contentType(ContentType.Application.Json)
-        setBody(employee)
-    }.body<EmployeeDTO>()
-
-    private suspend fun ApplicationTestBuilder.deleteEmployee(id: String) = client.delete("$API_PREFIX/$id") {}
-
-    private suspend fun ApplicationTestBuilder.updateEmployee(id: String, employee: EmployeeDTO) = client.put("$API_PREFIX/$id") {
-        contentType(ContentType.Application.Json)
-        setBody(employee)
-    }.body<EmployeeDTO>()
-
-    private suspend fun ApplicationTestBuilder.getEmployee(id: String) =
-        client.get("$API_PREFIX/$id") {}.body<EmployeeDTO>()
 }

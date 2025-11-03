@@ -1,10 +1,9 @@
 package com.mehrbod.service
 
 import com.mehrbod.data.repository.EmployeeRepository
-import com.mehrbod.exception.EmployeeNotFoundException
-import com.mehrbod.exception.OwnManagerException
+import com.mehrbod.exception.OwnReferenceException
 import com.mehrbod.model.EmployeeDTO
-import java.util.UUID
+import java.util.*
 
 class EmployeeService(
     private val employeeRepository: EmployeeRepository
@@ -12,22 +11,18 @@ class EmployeeService(
 
     suspend fun createEmployee(request: EmployeeDTO): EmployeeDTO {
         val savedEmployee = employeeRepository.createEmployee(request)
-        val subordinatesCount = employeeRepository.getSubordinates(UUID.fromString(savedEmployee.id)).count()
-        return savedEmployee.copy(subordinatesCount = subordinatesCount)
+        return savedEmployee.copy(subordinatesCount = 0)
     }
 
     suspend fun getEmployee(id: UUID): EmployeeDTO {
-        return employeeRepository.getById(id)?.let {
-            val subordinatesCount = employeeRepository.getSubordinates(id).count()
-            it.copy(subordinatesCount = subordinatesCount)
-        } ?: run {
-            throw EmployeeNotFoundException(id.toString())
-        }
+        val employee = employeeRepository.getById(id)
+        val subordinatesCount = employeeRepository.getSubordinates(id).count()
+        return employee.copy(subordinatesCount = subordinatesCount)
     }
 
     suspend fun updateEmployee(updatedInfo: EmployeeDTO): EmployeeDTO {
         if (updatedInfo.supervisorId == updatedInfo.id) {
-            throw OwnManagerException()
+            throw OwnReferenceException()
         }
         return employeeRepository.updateEmployee(updatedInfo)
     }
