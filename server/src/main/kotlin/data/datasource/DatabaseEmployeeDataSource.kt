@@ -188,7 +188,7 @@ class DatabaseEmployeeDataSource(
                     .selectAll()
                     .where {
                         EmployeeHierarchyTable.ancestor eq managerId and
-                                EmployeeHierarchyTable.distance.between(1, depth)
+                                EmployeeHierarchyTable.distance.between(0, depth)
                     }
                     .flowOn(ioDispatcher)
                     .map { it.convertToEmployeeNodeDTO() }
@@ -197,7 +197,7 @@ class DatabaseEmployeeDataSource(
             }
         }
 
-    override suspend fun getRootSubordinates(depth: Int): List<EmployeeNodeDTO> {
+    override suspend fun getRootSubordinates(depth: Int): List<List<EmployeeNodeDTO>> {
         return suspendTransaction(db) {
             val rootEmployees = EmployeesTable.selectAll()
                 .where { EmployeesTable.supervisor.isNull() }
@@ -205,7 +205,7 @@ class DatabaseEmployeeDataSource(
             rootEmployees.map {
                 val id = it[EmployeesTable.id].value
                 getSubordinates(id, depth)
-            }.toList().flatten()
+            }.toList()
         }
     }
 
@@ -219,7 +219,7 @@ class DatabaseEmployeeDataSource(
                 otherColumn = EmployeeHierarchyTable.ancestor
             ))
                 .selectAll()
-                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance.between(1, depth)) }
+                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance.between(0, depth)) }
                 .flowOn(ioDispatcher)
                 .map { it.convertToEmployeeNodeDTO() }
                 .flowOn(defaultDispatcher)

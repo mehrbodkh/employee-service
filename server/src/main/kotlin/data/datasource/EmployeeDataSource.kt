@@ -10,7 +10,7 @@ interface EmployeeDataSource {
     suspend fun delete(id: UUID)
     suspend fun getSubordinates(managerId: UUID, depth: Int): List<EmployeeNodeDTO>
     suspend fun getSupervisors(employeeId: UUID, depth: Int): List<EmployeeNodeDTO>
-    suspend fun getRootSubordinates(depth: Int): List<EmployeeNodeDTO>
+    suspend fun getRootSubordinates(depth: Int): List<List<EmployeeNodeDTO>>
     suspend fun getById(id: UUID): EmployeeDTO?
 
     /**

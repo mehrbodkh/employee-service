@@ -77,21 +77,64 @@ suspend fun recreateTables() = suspendTransaction {
 suspend fun ApplicationTestBuilder.setupHierarchy(rootsCount: Int = 1): List<List<EmployeeDTO>> {
     val result = mutableListOf<List<EmployeeDTO>>()
     repeat(rootsCount) {
-        val employee1 = createEmployee(getDefaultEmployeeDTO(name = "employee1", email = "email1"))
+        val employee1 =
+            createEmployee(getDefaultEmployeeDTO(name = "employee${(it * 8) + 1}", email = "email${(it * 8) + 1}"))
         val employee2 =
-            createEmployee(getDefaultEmployeeDTO(name = "employee2", email = "email2", supervisorId = employee1.id))
+            createEmployee(
+                getDefaultEmployeeDTO(
+                    name = "employee${(it * 8) + 2}",
+                    email = "email${(it * 8) + 2}",
+                    supervisorId = employee1.id
+                )
+            )
         val employee3 =
-            createEmployee(getDefaultEmployeeDTO(name = "employee3", email = "email3", supervisorId = employee1.id))
+            createEmployee(
+                getDefaultEmployeeDTO(
+                    name = "employee${(it * 8) + 3}",
+                    email = "email${(it * 8) + 3}",
+                    supervisorId = employee1.id
+                )
+            )
         val employee4 =
-            createEmployee(getDefaultEmployeeDTO(name = "employee4", email = "email4", supervisorId = employee3.id))
+            createEmployee(
+                getDefaultEmployeeDTO(
+                    name = "employee${(it * 8) + 4}",
+                    email = "email${(it * 8) + 4}",
+                    supervisorId = employee3.id
+                )
+            )
         val employee5 =
-            createEmployee(getDefaultEmployeeDTO(name = "employee5", email = "email5", supervisorId = employee3.id))
+            createEmployee(
+                getDefaultEmployeeDTO(
+                    name = "employee${(it * 8) + 5}",
+                    email = "email${(it * 8) + 5}",
+                    supervisorId = employee3.id
+                )
+            )
         val employee6 =
-            createEmployee(getDefaultEmployeeDTO(name = "employee6", email = "email6", supervisorId = employee5.id))
+            createEmployee(
+                getDefaultEmployeeDTO(
+                    name = "employee${(it * 8) + 6}",
+                    email = "email${(it * 8) + 6}",
+                    supervisorId = employee5.id
+                )
+            )
         val employee7 =
-            createEmployee(getDefaultEmployeeDTO(name = "employee7", email = "email7", supervisorId = employee5.id))
+            createEmployee(
+                getDefaultEmployeeDTO(
+                    name = "employee${(it * 8) + 7}",
+                    email = "email${(it * 8) + 7}",
+                    supervisorId = employee5.id
+                )
+            )
         val employee8 =
-            createEmployee(getDefaultEmployeeDTO(name = "employee8", email = "email8", supervisorId = employee5.id))
+            createEmployee(
+                getDefaultEmployeeDTO(
+                    name = "employee${(it * 8) + 8}",
+                    email = "email${(it * 8) + 8}",
+                    supervisorId = employee5.id
+                )
+            )
 
         result.add(listOf(employee1, employee2, employee3, employee4, employee5, employee6, employee7, employee8))
     }

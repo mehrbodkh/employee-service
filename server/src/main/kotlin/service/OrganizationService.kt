@@ -8,7 +8,7 @@ class OrganizationService(
     private val employeeRepository: EmployeeRepository
 ) {
 
-    suspend fun getRootsSubordinates(depth: Int): List<EmployeeNodeDTO> {
+    suspend fun getRootsSubordinates(depth: Int): List<List<EmployeeNodeDTO>> {
         return employeeRepository.getRootSubordinates(depth)
     }
 
