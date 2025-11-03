@@ -12,5 +12,9 @@ interface EmployeeDataSource {
     suspend fun getSupervisors(employeeId: UUID, depth: Int): List<EmployeeNodeDTO>
     suspend fun getRootSubordinates(depth: Int): List<EmployeeNodeDTO>
     suspend fun getById(id: UUID): EmployeeDTO?
+
+    /**
+     * Exists only for development purposes
+     */
     suspend fun fetchAllEmployees(): List<EmployeeDTO>
 }
