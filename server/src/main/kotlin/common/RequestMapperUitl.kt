@@ -9,8 +9,4 @@ fun String?.getUuidOrThrow(): UUID = try {
     throw InvalidIdException()
 }
 
-fun String?.getUuidOrNull(): UUID? = try {
-    UUID.fromString(this)
-} catch (_: Exception) {
-    null
-}
+fun String?.getCoercedDepth(range: IntRange = 1..10) = (this?.toInt() ?: 1).coerceIn(range)

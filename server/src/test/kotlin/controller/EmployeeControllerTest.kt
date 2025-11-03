@@ -1,27 +1,22 @@
 package com.mehrbod.controller
 
 import com.mehrbod.common.getUuidOrThrow
-import com.mehrbod.data.table.EmployeeHierarchyTable
-import com.mehrbod.data.table.EmployeesTable
 import com.mehrbod.exception.ServerErrorMessage
 import com.mehrbod.model.EmployeeDTO
-import com.mehrbod.util.initializedTestApplication
+import com.mehrbod.util.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
-import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
-import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
-import java.util.UUID
+import java.util.*
 
 class EmployeeControllerTest {
 
@@ -32,10 +27,7 @@ class EmployeeControllerTest {
     @AfterEach
     fun setup() {
         runBlocking {
-            suspendTransaction {
-                SchemaUtils.drop(EmployeesTable, EmployeeHierarchyTable)
-                SchemaUtils.create(EmployeesTable, EmployeeHierarchyTable)
-            }
+            recreateTables()
         }
     }
 
@@ -216,30 +208,4 @@ class EmployeeControllerTest {
             employeeDTO
         )
     }
-
-    private fun getDefaultEmployeeDTO(
-        id: String? = null,
-        name: String = "John",
-        surname: String = "Doe",
-        position: String = "CTO",
-        email: String = "default@mail.com",
-        supervisorId: String? = null,
-        subordinatesCount: Int? = null,
-    ) = EmployeeDTO(id, name, surname, email, position, supervisorId, subordinatesCount)
-
-    private suspend fun ApplicationTestBuilder.createEmployee(employee: EmployeeDTO) = client.post(API_PREFIX) {
-        contentType(ContentType.Application.Json)
-        setBody(employee)
-    }.body<EmployeeDTO>()
-
-    private suspend fun ApplicationTestBuilder.deleteEmployee(id: String) = client.delete("$API_PREFIX/$id") {}
-
-    private suspend fun ApplicationTestBuilder.updateEmployee(id: String, employee: EmployeeDTO) =
-        client.put("$API_PREFIX/$id") {
-            contentType(ContentType.Application.Json)
-            setBody(employee)
-        }.body<EmployeeDTO>()
-
-    private suspend fun ApplicationTestBuilder.getEmployee(id: String) =
-        client.get("$API_PREFIX/$id") {}.body<EmployeeDTO>()
 }
