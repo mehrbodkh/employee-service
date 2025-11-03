@@ -176,19 +176,50 @@ class DatabaseEmployeeDataSource(
         }
     }
 
-    override suspend fun getSubordinates(managerId: UUID, depth: Int): List<EmployeeNodeDTO> =
+    override suspend fun getSubordinates(managerId: UUID, depth: Int): List<EmployeeNodeDTO> = suspendTransaction(db) {
+        (EmployeeHierarchyTable.join(
+            EmployeesTable,
+            JoinType.INNER,
+            EmployeesTable.id,
+            otherColumn = EmployeeHierarchyTable.descendant
+        ))
+            .selectAll()
+            .where {
+                EmployeeHierarchyTable.ancestor eq managerId and EmployeeHierarchyTable.distance.between(0, depth)
+            }
+            .flowOn(ioDispatcher)
+            .map { it.convertToEmployeeNodeDTO() }
+            .flowOn(defaultDispatcher)
+            .toList()
+    }
+
+    override suspend fun getRootSubordinates(depth: Int): List<List<EmployeeNodeDTO>> = suspendTransaction(db) {
+        EmployeesTable.selectAll()
+            .where { EmployeesTable.supervisor.isNull() }
+            .map {
+                val id = it[EmployeesTable.id].value
+                getSubordinates(id, depth)
+            }
+            .flowOn(ioDispatcher)
+            .toList()
+    }
+
+
+    override suspend fun getSupervisors(employeeId: UUID, depth: Int): List<EmployeeNodeDTO> =
         withContext(ioDispatcher) {
             suspendTransaction(db) {
                 (EmployeeHierarchyTable.join(
                     EmployeesTable,
                     JoinType.INNER,
                     EmployeesTable.id,
-                    otherColumn = EmployeeHierarchyTable.descendant
+                    otherColumn = EmployeeHierarchyTable.ancestor
                 ))
                     .selectAll()
                     .where {
-                        EmployeeHierarchyTable.ancestor eq managerId and
-                                EmployeeHierarchyTable.distance.between(0, depth)
+                        (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance.between(
+                            0,
+                            depth
+                        ))
                     }
                     .flowOn(ioDispatcher)
                     .map { it.convertToEmployeeNodeDTO() }
@@ -196,36 +227,6 @@ class DatabaseEmployeeDataSource(
                     .toList()
             }
         }
-
-    override suspend fun getRootSubordinates(depth: Int): List<List<EmployeeNodeDTO>> {
-        return suspendTransaction(db) {
-            val rootEmployees = EmployeesTable.selectAll()
-                .where { EmployeesTable.supervisor.isNull() }
-
-            rootEmployees.map {
-                val id = it[EmployeesTable.id].value
-                getSubordinates(id, depth)
-            }.toList()
-        }
-    }
-
-
-    override suspend fun getSupervisors(employeeId: UUID, depth: Int): List<EmployeeNodeDTO> = withContext(ioDispatcher) {
-        suspendTransaction(db) {
-            (EmployeeHierarchyTable.join(
-                EmployeesTable,
-                JoinType.INNER,
-                EmployeesTable.id,
-                otherColumn = EmployeeHierarchyTable.ancestor
-            ))
-                .selectAll()
-                .where { (EmployeeHierarchyTable.descendant eq employeeId) and (EmployeeHierarchyTable.distance.between(0, depth)) }
-                .flowOn(ioDispatcher)
-                .map { it.convertToEmployeeNodeDTO() }
-                .flowOn(defaultDispatcher)
-                .toList()
-        }
-    }
 
     override suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
         suspendTransaction(db) {
