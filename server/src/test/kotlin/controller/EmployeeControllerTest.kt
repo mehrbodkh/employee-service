@@ -12,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 import org.junit.jupiter.api.AfterEach
@@ -155,6 +156,35 @@ class EmployeeControllerTest {
 
     }
 
+    @Nested
+    inner class EmployeeDeletion {
+
+        @Test
+        fun `should get error if employee doesn't exist`() = initializedTestApplication {
+            runTest {
+                val id = UUID.randomUUID().toString()
+                val response = deleteEmployee(id)
+
+                assertEquals(HttpStatusCode.NotFound, response.status)
+                val message = response.body<ServerErrorMessage>()
+                assertEquals("Employee with id $id not found", message.error)
+            }
+        }
+
+        @Test
+        fun `should delete employee`() = initializedTestApplication {
+            runTest {
+                val employee = createEmployee(EmployeeDTO(null, "name", "surname", "email", "position"))
+
+                val response = deleteEmployee(employee.id.toString())
+
+                assertEquals(HttpStatusCode.OK, response.status)
+            }
+        }
+
+
+    }
+
     @Test
     fun testEmployeeCreation() = initializedTestApplication {
         val response = client.post(API_PREFIX) {
@@ -186,6 +216,16 @@ class EmployeeControllerTest {
             employeeDTO
         )
     }
+
+    private fun getDefaultEmployeeDTO(
+        id: String? = null,
+        name: String = "John",
+        surname: String = "Doe",
+        position: String = "CTO",
+        email: String = "default@mail.com",
+        supervisorId: String? = null,
+        subordinatesCount: Int? = null,
+    ) = EmployeeDTO(id, name, surname, email, position, supervisorId, subordinatesCount)
 
     private suspend fun ApplicationTestBuilder.createEmployee(employee: EmployeeDTO) = client.post(API_PREFIX) {
         contentType(ContentType.Application.Json)

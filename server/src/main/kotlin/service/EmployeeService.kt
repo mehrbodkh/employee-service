@@ -1,8 +1,7 @@
 package com.mehrbod.service
 
-import com.mehrbod.common.getUuidOrThrow
 import com.mehrbod.data.repository.EmployeeRepository
-import com.mehrbod.exception.OwnManagerException
+import com.mehrbod.exception.OwnReferenceException
 import com.mehrbod.model.EmployeeDTO
 import java.util.*
 
@@ -12,8 +11,7 @@ class EmployeeService(
 
     suspend fun createEmployee(request: EmployeeDTO): EmployeeDTO {
         val savedEmployee = employeeRepository.createEmployee(request)
-        val subordinatesCount = employeeRepository.getSubordinates(savedEmployee.id.getUuidOrThrow()).count()
-        return savedEmployee.copy(subordinatesCount = subordinatesCount)
+        return savedEmployee.copy(subordinatesCount = 0)
     }
 
     suspend fun getEmployee(id: UUID): EmployeeDTO {
@@ -24,7 +22,7 @@ class EmployeeService(
 
     suspend fun updateEmployee(updatedInfo: EmployeeDTO): EmployeeDTO {
         if (updatedInfo.supervisorId == updatedInfo.id) {
-            throw OwnManagerException()
+            throw OwnReferenceException()
         }
         return employeeRepository.updateEmployee(updatedInfo)
     }
