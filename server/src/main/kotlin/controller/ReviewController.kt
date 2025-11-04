@@ -35,7 +35,9 @@ class ReviewController(
 
         get("{id}") {
             val id = call.parameters["id"].getUuidOrThrow()
-            val response = reviewService.fetchReviews(id)
+            val page = call.parameters["page"]?.toIntOrNull() ?: 1
+            val pageSize = call.parameters["pageSize"]?.toIntOrNull() ?: 20
+            val response = reviewService.fetchReviews(id, page, pageSize)
             call.respond(response)
         }
     }

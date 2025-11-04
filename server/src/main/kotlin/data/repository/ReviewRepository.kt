@@ -1,10 +1,9 @@
 package com.mehrbod.data.repository
 
 import com.mehrbod.controller.model.request.SubmitReviewRequest
-import com.mehrbod.data.datasource.DatabaseEmployeeDataSource
 import com.mehrbod.data.datasource.review.PerformanceReviewDataSource
 import kotlinx.coroutines.Dispatchers
-import java.util.UUID
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 class ReviewRepository(
@@ -16,5 +15,5 @@ class ReviewRepository(
         reviewDataSource.submitReview(id, review)
     }
 
-    suspend fun fetchReviews(id: UUID) = reviewDataSource.fetchReviews(id)
+    suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int) = reviewDataSource.fetchReviews(id, page, pageSize)
 }

@@ -1,9 +1,8 @@
 package com.mehrbod.service
 
 import com.mehrbod.controller.model.request.SubmitReviewRequest
-import com.mehrbod.data.repository.EmployeeRepository
 import com.mehrbod.data.repository.ReviewRepository
-import java.util.UUID
+import java.util.*
 
 class ReviewService(
     private val reviewRepository: ReviewRepository,
@@ -15,5 +14,6 @@ class ReviewService(
         reviewRepository.submitReview(id, review)
     }
 
-    suspend fun fetchReviews(id: UUID) = reviewRepository.fetchReviews(id)
+    suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int) = reviewRepository.fetchReviews(id, page, pageSize)
+
 }

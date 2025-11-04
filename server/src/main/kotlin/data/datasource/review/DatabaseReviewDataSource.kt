@@ -3,6 +3,7 @@ package com.mehrbod.data.datasource.review
 import com.mehrbod.controller.model.request.SubmitReviewRequest
 import com.mehrbod.data.table.EmployeesTable
 import com.mehrbod.data.table.PerformanceReviewsTable
+import com.mehrbod.model.Page
 import com.mehrbod.model.ReviewDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -44,10 +45,15 @@ class DatabaseReviewDataSource(
         }
     }
 
-    override suspend fun fetchReviews(id: UUID): List<ReviewDTO> = suspendTransaction(db) {
-        PerformanceReviewsTable.selectAll()
+    override suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Page<ReviewDTO> = suspendTransaction(db) {
+        val totalCount = PerformanceReviewsTable.selectAll()
+            .where { PerformanceReviewsTable.employee eq id }
+            .count()
+        val reviews = PerformanceReviewsTable
+            .selectAll()
             .where { PerformanceReviewsTable.employee eq id }
             .orderBy(PerformanceReviewsTable.reviewDate, SortOrder.DESC)
+            .limit(pageSize).offset(((page - 1) * pageSize).toLong())
             .map {
                 ReviewDTO(
                     it[PerformanceReviewsTable.reviewDate],
@@ -55,10 +61,16 @@ class DatabaseReviewDataSource(
                     it[PerformanceReviewsTable.softSkills],
                     it[PerformanceReviewsTable.independence],
                     it[PerformanceReviewsTable.aspiration],
-
                 )
             }
             .flowOn(ioDispatcher)
             .toList()
+
+        Page(
+            reviews,
+            page,
+            pageSize,
+            totalCount
+        )
     }
 }
