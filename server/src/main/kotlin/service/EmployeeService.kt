@@ -1,7 +1,9 @@
 package com.mehrbod.service
 
 import com.mehrbod.data.repository.EmployeeRepository
+import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.exception.OwnReferenceException
+import com.mehrbod.exception.EmailAlreadyExistsException
 import com.mehrbod.model.EmployeeDTO
 import java.util.*
 
@@ -10,25 +12,43 @@ class EmployeeService(
 ) {
 
     suspend fun createEmployee(request: EmployeeDTO): EmployeeDTO {
-        val savedEmployee = employeeRepository.createEmployee(request)
-        return savedEmployee.copy(subordinatesCount = 0)
+        if (employeeRepository.getByEmail(request.email) != null) {
+            throw EmailAlreadyExistsException()
+        }
+
+        if (request.supervisorId != null && employeeRepository.getById(request.supervisorId) == null) {
+            throw EmployeeNotFoundException(request.supervisorId)
+        }
+
+        return employeeRepository.createEmployee(request)
     }
 
-    suspend fun getEmployee(id: UUID): EmployeeDTO {
-        val employee = employeeRepository.getById(id)
-        val subordinatesCount = employeeRepository.getSubordinates(id).count()
-        return employee.copy(subordinatesCount = subordinatesCount)
-    }
+    suspend fun getEmployee(id: UUID): EmployeeDTO = employeeRepository.getById(id)?.let {
+        val subordinatesCount = employeeRepository.getSubordinatesCount(id)
+        it.copy(subordinatesCount = subordinatesCount.toInt())
+    } ?: throw EmployeeNotFoundException(id)
 
-    suspend fun updateEmployee(updatedInfo: EmployeeDTO): EmployeeDTO {
-        if (updatedInfo.supervisorId == updatedInfo.id) {
+    suspend fun updateEmployee(id: UUID, updatedInfo: EmployeeDTO): EmployeeDTO {
+        val currentEmployee = employeeRepository.getById(id) ?: throw EmployeeNotFoundException(id)
+
+        if (updatedInfo.email != currentEmployee.email && employeeRepository.getByEmail(updatedInfo.email) != null) {
+            throw EmailAlreadyExistsException()
+        }
+
+        if (updatedInfo.supervisorId == id) {
             throw OwnReferenceException()
         }
+
+        if (updatedInfo.supervisorId != null && employeeRepository.getById(updatedInfo.supervisorId) == null) {
+            throw EmployeeNotFoundException(updatedInfo.supervisorId)
+        }
+
         return employeeRepository.updateEmployee(updatedInfo)
     }
 
     suspend fun deleteEmployee(id: UUID) {
-        return employeeRepository.deleteEmployee(id)
+        employeeRepository.getById(id) ?: throw EmployeeNotFoundException(id)
+        employeeRepository.deleteEmployee(id)
     }
 
     suspend fun getAllEmployees() = employeeRepository.fetchAllEmployees()

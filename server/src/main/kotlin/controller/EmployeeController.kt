@@ -33,7 +33,7 @@ class EmployeeController(
         put("{id}") {
             val request = call.receive<EmployeeDTO>()
             val id = call.parameters["id"].getUuidOrThrow()
-            val response = employeeService.updateEmployee(request.copy(id = id))
+            val response = employeeService.updateEmployee(id, request.copy(id = id))
             call.respond(HttpStatusCode.OK, response)
         }
 

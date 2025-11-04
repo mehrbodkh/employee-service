@@ -52,30 +52,3 @@ fun ResultRow.convertToEmployeeNodeDTO() = EmployeeNodeDTO(
     position = this[position],
     supervisorId = this[supervisor]?.value,
 )
-
-/**
- * Due to lack of support for R2DBC on exposed DAO, some basic DAO like functions was needed
- */
-suspend fun EmployeesTable.insertAndGet(employee: EmployeeDTO) = insertAndGetId {
-    it[name] = employee.name
-    it[surname] = employee.surname
-    it[email] = employee.email
-    it[position] = employee.position
-    it[supervisor] = employee.supervisorId?.let {
-        EntityIDFunctionProvider.createEntityID(employee.supervisorId, EmployeesTable)
-    }
-}.let {
-    employee.copy(id = it.value)
-}
-
-suspend fun EmployeesTable.update(employee: EmployeeDTO) = update(
-    where = { EmployeesTable.id eq employee.id },
-) {
-    it[name] = employee.name
-    it[surname] = employee.surname
-    it[email] = employee.email
-    it[position] = employee.position
-    it[supervisor] = employee.supervisorId?.let {
-        EntityIDFunctionProvider.createEntityID(employee.supervisorId, EmployeesTable)
-    }
-}

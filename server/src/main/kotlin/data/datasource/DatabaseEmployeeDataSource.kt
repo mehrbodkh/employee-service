@@ -10,11 +10,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityIDFunctionProvider
-import org.jetbrains.exposed.v1.r2dbc.R2dbcDatabase
-import org.jetbrains.exposed.v1.r2dbc.deleteWhere
-import org.jetbrains.exposed.v1.r2dbc.selectAll
+import org.jetbrains.exposed.v1.r2dbc.*
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
-import org.jetbrains.exposed.v1.r2dbc.update
 import java.util.*
 
 /**
@@ -29,8 +26,15 @@ class DatabaseEmployeeDataSource(
 
     override suspend fun save(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
-            val insertedEmployee = EmployeesTable.insertAndGet(employee)
-            val insertedId = insertedEmployee.id!!
+            val insertedId = EmployeesTable.insertAndGetId {
+                it[name] = employee.name
+                it[surname] = employee.surname
+                it[email] = employee.email
+                it[position] = employee.position
+                it[supervisor] = employee.supervisorId?.let {
+                    EntityIDFunctionProvider.createEntityID(employee.supervisorId, EmployeesTable)
+                }
+            }.value
 
             EmployeeHierarchyTable.insert(insertedId, insertedId, 0)
 
@@ -44,7 +48,7 @@ class DatabaseEmployeeDataSource(
                     }
             }
 
-            insertedEmployee
+            employee.copy(id = insertedId)
         }
     }
 
@@ -99,7 +103,15 @@ class DatabaseEmployeeDataSource(
                         }
                     }
 
-                EmployeesTable.update(newEmployee)
+                EmployeesTable.update(
+                    where = { EmployeesTable.id eq newEmployee.id },
+                ) {
+                    it[EmployeesTable.name] = newEmployee.name
+                    it[surname] = newEmployee.surname
+                    it[email] = newEmployee.email
+                    it[position] = newEmployee.position
+                    it[supervisor] = EntityIDFunctionProvider.createEntityID(newEmployee.supervisorId, EmployeesTable)
+                }
             }
 
             newEmployee
@@ -175,6 +187,15 @@ class DatabaseEmployeeDataSource(
         }
     }
 
+    override suspend fun getSubordinatesCount(managerId: UUID): Long = suspendTransaction(db) {
+        withContext(ioDispatcher) {
+            EmployeeHierarchyTable
+                .selectAll()
+                .where { (EmployeeHierarchyTable.ancestor eq managerId) and (EmployeeHierarchyTable.distance greater 0) }
+                .count()
+        }
+    }
+
     override suspend fun getSubordinates(managerId: UUID, depth: Int): List<EmployeeNodeDTO> = suspendTransaction(db) {
         (EmployeeHierarchyTable.join(
             EmployeesTable,
@@ -235,6 +256,14 @@ class DatabaseEmployeeDataSource(
                 .singleOrNull()
                 ?.convertToEmployeeDTO()
         }
+    }
+
+    override suspend fun getByEmail(email: String): EmployeeDTO? = suspendTransaction(db) {
+        EmployeesTable
+            .selectAll()
+            .where { EmployeesTable.email eq email }
+            .singleOrNull()
+            ?.convertToEmployeeDTO()
     }
 
     override suspend fun fetchAllEmployees(): List<EmployeeDTO> = withContext(ioDispatcher) {
