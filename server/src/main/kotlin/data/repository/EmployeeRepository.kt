@@ -1,9 +1,9 @@
 package com.mehrbod.data.repository
 
-import com.mehrbod.data.datasource.EmployeeDataSource
+import com.mehrbod.data.datasource.employee.EmployeeDataSource
 import com.mehrbod.exception.EmployeeCouldNotBeCreatedException
-import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.model.EmployeeDTO
+import com.mehrbod.model.EmployeeNodeDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,7 +22,7 @@ class EmployeeRepository(
         }
     }
 
-    suspend fun updateEmployee(updatedEmployee: EmployeeDTO) = withContext(ioDispatcher) {
+    suspend fun updateEmployee(updatedEmployee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         dbDataSource.update(updatedEmployee)
     }
 
@@ -30,16 +30,24 @@ class EmployeeRepository(
         dbDataSource.delete(id)
     }
 
-    suspend fun getSubordinates(id: UUID, depth: Int = 1) = withContext(ioDispatcher) {
+    suspend fun getSubordinatesCount(id: UUID): Long = withContext(ioDispatcher) {
+        dbDataSource.getSubordinatesCount(id)
+    }
+
+    suspend fun getSubordinates(id: UUID, depth: Int = 1): List<EmployeeNodeDTO> = withContext(ioDispatcher) {
         dbDataSource.getSubordinates(id, depth)
     }
 
-    suspend fun getSupervisors(id: UUID, depth: Int) = withContext(ioDispatcher) {
+    suspend fun getSupervisors(id: UUID, depth: Int): List<EmployeeNodeDTO> = withContext(ioDispatcher) {
         dbDataSource.getSupervisors(id, depth)
     }
 
-    suspend fun getById(id: UUID): EmployeeDTO = withContext(ioDispatcher) {
-        dbDataSource.getById(id) ?: throw EmployeeNotFoundException(id)
+    suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
+        dbDataSource.getById(id)
+    }
+
+    suspend fun getByEmail(email: String): EmployeeDTO? = withContext(ioDispatcher) {
+        dbDataSource.getByEmail(email)
     }
 
     suspend fun getRootSubordinates(depth: Int) = withContext(ioDispatcher) {

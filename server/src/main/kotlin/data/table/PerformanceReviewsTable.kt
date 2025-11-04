@@ -1,7 +1,9 @@
 package com.mehrbod.data.table
 
+import com.mehrbod.model.ReviewDTO
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.core.ReferenceOption
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.between
 import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
 import org.jetbrains.exposed.v1.datetime.CurrentDateTime
@@ -23,3 +25,11 @@ object PerformanceReviewsTable : UUIDTable("performance_reviews") {
         }
     }
 }
+
+fun ResultRow.mapToReviewDTO() =  ReviewDTO(
+    this[PerformanceReviewsTable.reviewDate],
+    this[PerformanceReviewsTable.performance],
+    this[PerformanceReviewsTable.softSkills],
+    this[PerformanceReviewsTable.independence],
+    this[PerformanceReviewsTable.aspiration],
+)

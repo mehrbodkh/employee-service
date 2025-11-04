@@ -1,8 +1,8 @@
 package com.mehrbod.data.di
 
 import com.mehrbod.common.Environment
-import com.mehrbod.data.datasource.DatabaseEmployeeDataSource
-import com.mehrbod.data.datasource.EmployeeDataSource
+import com.mehrbod.data.datasource.employee.DatabaseEmployeeDataSource
+import com.mehrbod.data.datasource.employee.EmployeeDataSource
 import com.mehrbod.data.datasource.review.DatabaseReviewDataSource
 import com.mehrbod.data.datasource.review.PerformanceReviewDataSource
 import com.mehrbod.data.factory.createDbConnection

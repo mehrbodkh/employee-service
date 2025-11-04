@@ -182,7 +182,7 @@ class EmployeeControllerTest {
         val employeeDTO = response.body<EmployeeDTO>()
 
         assertEquals(
-            EmployeeDTO(employeeDTO.id, "test1", "test2", "retrieval@gmail.com", "test4", null, 1),
+            EmployeeDTO(employeeDTO.id, "test1", "test2", "retrieval@gmail.com", "test4", null, 0),
             employeeDTO
         )
     }

@@ -3,7 +3,7 @@ package com.mehrbod.data.datasource.review
 import com.mehrbod.controller.model.request.SubmitReviewRequest
 import com.mehrbod.data.table.EmployeesTable
 import com.mehrbod.data.table.PerformanceReviewsTable
-import com.mehrbod.model.Page
+import com.mehrbod.data.table.mapToReviewDTO
 import com.mehrbod.model.ReviewDTO
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +28,7 @@ import kotlin.time.ExperimentalTime
 class DatabaseReviewDataSource(
     private val db: R2dbcDatabase,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : PerformanceReviewDataSource {
 
     override suspend fun submitReview(id: UUID, review: SubmitReviewRequest) {
@@ -50,21 +51,13 @@ class DatabaseReviewDataSource(
             val totalCount = PerformanceReviewsTable.selectAll()
                 .where { PerformanceReviewsTable.employee eq id }
                 .count()
-            val reviews = PerformanceReviewsTable
-                .selectAll()
+            val reviews = PerformanceReviewsTable.selectAll()
                 .where { PerformanceReviewsTable.employee eq id }
                 .orderBy(PerformanceReviewsTable.reviewDate, SortOrder.DESC)
                 .limit(pageSize).offset(((page - 1) * pageSize).toLong())
-                .map {
-                    ReviewDTO(
-                        it[PerformanceReviewsTable.reviewDate],
-                        it[PerformanceReviewsTable.performance],
-                        it[PerformanceReviewsTable.softSkills],
-                        it[PerformanceReviewsTable.independence],
-                        it[PerformanceReviewsTable.aspiration],
-                    )
-                }
                 .flowOn(ioDispatcher)
+                .map { it.mapToReviewDTO() }
+                .flowOn(defaultDispatcher)
                 .toList()
 
             totalCount to reviews
