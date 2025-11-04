@@ -22,6 +22,7 @@ object PerformanceReviewsTable : UUIDTable("performance_reviews") {
     init {
         runBlocking {
             SchemaUtils.create(PerformanceReviewsTable)
+            index(false, employee)
         }
     }
 }
