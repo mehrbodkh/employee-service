@@ -10,13 +10,9 @@ import com.mehrbod.model.EmployeeNodeDTO
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.ResultRow
-import org.jetbrains.exposed.v1.core.dao.id.EntityIDFunctionProvider
 import org.jetbrains.exposed.v1.core.dao.id.UUIDTable
-import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
-import org.jetbrains.exposed.v1.r2dbc.insertAndGetId
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
-import org.jetbrains.exposed.v1.r2dbc.update
 
 object EmployeesTable : UUIDTable("employees") {
     val name = varchar("name", length = 50)
@@ -34,7 +30,7 @@ object EmployeesTable : UUIDTable("employees") {
     }
 }
 
-fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
+fun ResultRow.mapToEmployeeDTO() = EmployeeDTO(
     id = this[EmployeesTable.id].value,
     name = this[name],
     surname = this[surname],
@@ -44,7 +40,7 @@ fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
     subordinatesCount = 0,
 )
 
-fun ResultRow.convertToEmployeeNodeDTO() = EmployeeNodeDTO(
+fun ResultRow.mapToEmployeeNodeDTO() = EmployeeNodeDTO(
     id = this[EmployeesTable.id].value,
     name = this[name],
     surname = this[surname],

@@ -1,8 +1,8 @@
 package com.mehrbod.controller
 
 import com.mehrbod.common.getUuidOrThrow
+import com.mehrbod.common.mapToPaginatedResponse
 import com.mehrbod.controller.model.request.SubmitReviewRequest
-import com.mehrbod.controller.model.response.PaginatedResponse
 import com.mehrbod.service.ReviewService
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -24,7 +24,6 @@ class ReviewController(
         }
     }
 
-
     override fun Route.routes() = route("/review") {
 
         post("/{id}/submit") {
@@ -38,16 +37,8 @@ class ReviewController(
             val id = call.parameters["id"].getUuidOrThrow()
             val page = (call.parameters["page"]?.toIntOrNull() ?: 1).coerceAtLeast(1)
             val pageSize = (call.parameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1..100)
-            val (totalSize, reviews) = reviewService.fetchReviews(id, page, pageSize)
-            call.respond(PaginatedResponse(
-                reviews,
-                PaginatedResponse.PaginationMetadata(
-                    page,
-                    pageSize,
-                    totalSize,
-                    (totalSize / pageSize).toInt() + 1
-                )
-            ))
+            val response = reviewService.fetchReviews(id, page, pageSize)
+            call.respond(response.mapToPaginatedResponse(page, pageSize))
         }
     }
 }

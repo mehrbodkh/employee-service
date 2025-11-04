@@ -1,7 +1,6 @@
 package com.mehrbod.data.datasource.review
 
 import com.mehrbod.controller.model.request.SubmitReviewRequest
-import com.mehrbod.model.Page
 import com.mehrbod.model.ReviewDTO
 import java.util.UUID
 

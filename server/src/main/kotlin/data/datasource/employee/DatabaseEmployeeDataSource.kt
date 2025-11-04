@@ -1,4 +1,4 @@
-package com.mehrbod.data.datasource
+package com.mehrbod.data.datasource.employee
 
 import com.mehrbod.data.table.*
 import com.mehrbod.exception.EmployeeNotFoundException
@@ -58,7 +58,7 @@ class DatabaseEmployeeDataSource(
             val currentEmployee = EmployeesTable.selectAll()
                 .where { EmployeesTable.id eq id }
                 .singleOrNull()
-                ?.convertToEmployeeDTO()
+                ?.mapToEmployeeDTO()
                 ?: throw EmployeeNotFoundException(id)
 
             val currentSupervisorId = currentEmployee.supervisorId
@@ -208,7 +208,7 @@ class DatabaseEmployeeDataSource(
                 EmployeeHierarchyTable.ancestor eq managerId and EmployeeHierarchyTable.distance.between(0, depth)
             }
             .flowOn(ioDispatcher)
-            .map { it.convertToEmployeeNodeDTO() }
+            .map { it.mapToEmployeeNodeDTO() }
             .flowOn(defaultDispatcher)
             .toList()
     }
@@ -242,7 +242,7 @@ class DatabaseEmployeeDataSource(
                         ))
                     }
                     .flowOn(ioDispatcher)
-                    .map { it.convertToEmployeeNodeDTO() }
+                    .map { it.mapToEmployeeNodeDTO() }
                     .flowOn(defaultDispatcher)
                     .toList()
             }
@@ -254,7 +254,7 @@ class DatabaseEmployeeDataSource(
                 .selectAll()
                 .where { EmployeesTable.id eq id }
                 .singleOrNull()
-                ?.convertToEmployeeDTO()
+                ?.mapToEmployeeDTO()
         }
     }
 
@@ -263,12 +263,12 @@ class DatabaseEmployeeDataSource(
             .selectAll()
             .where { EmployeesTable.email eq email }
             .singleOrNull()
-            ?.convertToEmployeeDTO()
+            ?.mapToEmployeeDTO()
     }
 
     override suspend fun fetchAllEmployees(): List<EmployeeDTO> = withContext(ioDispatcher) {
         suspendTransaction(db) {
-            EmployeesTable.selectAll().map { it.convertToEmployeeDTO() }.toList()
+            EmployeesTable.selectAll().map { it.mapToEmployeeDTO() }.toList()
         }
     }
 }

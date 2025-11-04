@@ -19,8 +19,6 @@ class ReviewService(
     }
 
     suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Pair<Long, List<ReviewDTO>> {
-        employeeRepository.getById(id) ?: throw EmployeeNotFoundException(id)
         return reviewRepository.fetchReviews(id, page, pageSize)
     }
-
 }

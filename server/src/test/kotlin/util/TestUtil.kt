@@ -3,6 +3,7 @@ package com.mehrbod.util
 import com.mehrbod.controller.EmployeeControllerTest.Companion.API_PREFIX
 import com.mehrbod.data.table.EmployeeHierarchyTable
 import com.mehrbod.data.table.EmployeesTable
+import com.mehrbod.data.table.PerformanceReviewsTable
 import com.mehrbod.model.EmployeeDTO
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -71,8 +72,8 @@ suspend fun ApplicationTestBuilder.getEmployee(id: UUID) =
 
 
 suspend fun recreateTables() = suspendTransaction {
-    SchemaUtils.drop(EmployeesTable, EmployeeHierarchyTable)
-    SchemaUtils.create(EmployeesTable, EmployeeHierarchyTable)
+    SchemaUtils.drop(EmployeesTable, EmployeeHierarchyTable, PerformanceReviewsTable)
+    SchemaUtils.create(EmployeesTable, EmployeeHierarchyTable, PerformanceReviewsTable)
 }
 
 suspend fun ApplicationTestBuilder.setupHierarchy(rootsCount: Int = 1): List<List<EmployeeDTO>> {

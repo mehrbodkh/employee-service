@@ -1,6 +1,6 @@
 package com.mehrbod.data.repository
 
-import com.mehrbod.data.datasource.EmployeeDataSource
+import com.mehrbod.data.datasource.employee.EmployeeDataSource
 import com.mehrbod.exception.EmployeeCouldNotBeCreatedException
 import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.model.EmployeeNodeDTO
