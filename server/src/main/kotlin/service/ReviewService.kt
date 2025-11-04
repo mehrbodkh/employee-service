@@ -11,7 +11,9 @@ class ReviewService(
 ) {
 
     suspend fun submitReview(id: UUID, review: SubmitReviewRequest) {
-        val employee = employeeService.getEmployee(id)
+        employeeService.getEmployee(id)
         reviewRepository.submitReview(id, review)
     }
+
+    suspend fun fetchReviews(id: UUID) = reviewRepository.fetchReviews(id)
 }
