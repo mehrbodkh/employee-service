@@ -45,32 +45,28 @@ class DatabaseReviewDataSource(
         }
     }
 
-    override suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Page<ReviewDTO> = suspendTransaction(db) {
-        val totalCount = PerformanceReviewsTable.selectAll()
-            .where { PerformanceReviewsTable.employee eq id }
-            .count()
-        val reviews = PerformanceReviewsTable
-            .selectAll()
-            .where { PerformanceReviewsTable.employee eq id }
-            .orderBy(PerformanceReviewsTable.reviewDate, SortOrder.DESC)
-            .limit(pageSize).offset(((page - 1) * pageSize).toLong())
-            .map {
-                ReviewDTO(
-                    it[PerformanceReviewsTable.reviewDate],
-                    it[PerformanceReviewsTable.performance],
-                    it[PerformanceReviewsTable.softSkills],
-                    it[PerformanceReviewsTable.independence],
-                    it[PerformanceReviewsTable.aspiration],
-                )
-            }
-            .flowOn(ioDispatcher)
-            .toList()
+    override suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Pair<Long, List<ReviewDTO>> =
+        suspendTransaction(db) {
+            val totalCount = PerformanceReviewsTable.selectAll()
+                .where { PerformanceReviewsTable.employee eq id }
+                .count()
+            val reviews = PerformanceReviewsTable
+                .selectAll()
+                .where { PerformanceReviewsTable.employee eq id }
+                .orderBy(PerformanceReviewsTable.reviewDate, SortOrder.DESC)
+                .limit(pageSize).offset(((page - 1) * pageSize).toLong())
+                .map {
+                    ReviewDTO(
+                        it[PerformanceReviewsTable.reviewDate],
+                        it[PerformanceReviewsTable.performance],
+                        it[PerformanceReviewsTable.softSkills],
+                        it[PerformanceReviewsTable.independence],
+                        it[PerformanceReviewsTable.aspiration],
+                    )
+                }
+                .flowOn(ioDispatcher)
+                .toList()
 
-        Page(
-            reviews,
-            page,
-            pageSize,
-            totalCount
-        )
-    }
+            totalCount to reviews
+        }
 }

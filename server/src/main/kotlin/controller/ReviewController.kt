@@ -2,6 +2,7 @@ package com.mehrbod.controller
 
 import com.mehrbod.common.getUuidOrThrow
 import com.mehrbod.controller.model.request.SubmitReviewRequest
+import com.mehrbod.controller.model.response.PaginatedResponse
 import com.mehrbod.service.ReviewService
 import io.ktor.http.*
 import io.ktor.server.plugins.requestvalidation.*
@@ -35,10 +36,18 @@ class ReviewController(
 
         get("{id}") {
             val id = call.parameters["id"].getUuidOrThrow()
-            val page = call.parameters["page"]?.toIntOrNull() ?: 1
-            val pageSize = call.parameters["pageSize"]?.toIntOrNull() ?: 20
-            val response = reviewService.fetchReviews(id, page, pageSize)
-            call.respond(response)
+            val page = (call.parameters["page"]?.toIntOrNull() ?: 1).coerceAtLeast(1)
+            val pageSize = (call.parameters["pageSize"]?.toIntOrNull() ?: 20).coerceIn(1..100)
+            val (totalSize, reviews) = reviewService.fetchReviews(id, page, pageSize)
+            call.respond(PaginatedResponse(
+                reviews,
+                PaginatedResponse.PaginationMetadata(
+                    page,
+                    pageSize,
+                    totalSize,
+                    (totalSize / pageSize).toInt() + 1
+                )
+            ))
         }
     }
 }

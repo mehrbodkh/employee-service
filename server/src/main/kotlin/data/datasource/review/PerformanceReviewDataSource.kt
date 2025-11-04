@@ -7,5 +7,5 @@ import java.util.UUID
 
 interface PerformanceReviewDataSource {
     suspend fun submitReview(id: UUID, review: SubmitReviewRequest)
-    suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Page<ReviewDTO>
+    suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Pair<Long, List<ReviewDTO>>
 }
