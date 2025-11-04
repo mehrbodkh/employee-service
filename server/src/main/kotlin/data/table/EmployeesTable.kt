@@ -15,16 +15,17 @@ import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
 
 object EmployeesTable : UUIDTable("employees") {
-    val name = varchar("name", length = 50)
-    val surname = varchar("surname", length = 50)
-    val email = varchar("email", length = 150).uniqueIndex()
-    val position = varchar("position", length = 150)
+    val name = varchar("name", length = 100)
+    val surname = varchar("surname", length = 100)
+    val email = varchar("email", length = 255).uniqueIndex()
+    val position = varchar("position", length = 255)
     val supervisor = optReference("supervisor_id", EmployeesTable, onDelete = ReferenceOption.CASCADE)
 
     init {
         runBlocking {
             suspendTransaction {
                 SchemaUtils.create(EmployeesTable)
+                index(false, supervisor)
             }
         }
     }

@@ -17,6 +17,9 @@ object EmployeeHierarchyTable : Table("employee_hierarchy") {
         runBlocking {
             suspendTransaction {
                 SchemaUtils.create(EmployeeHierarchyTable)
+                index(false, ancestor)
+                index(false, descendant)
+                index(false, ancestor, descendant)
             }
         }
     }
