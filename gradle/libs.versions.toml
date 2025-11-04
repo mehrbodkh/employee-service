@@ -22,6 +22,7 @@ ktor-server-kafka = { module = "io.github.flaxoos:ktor-server-kafka", version = 
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-r2dbc = { module = "org.jetbrains.exposed:exposed-r2dbc", version.ref = "exposed" }
+exposed-date-time = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 opentelemetry-sdk-extension-autoconfigure = { module = "io.opentelemetry:opentelemetry-sdk-extension-autoconfigure", version = "1.52.0" }
 opentelemetry-semconv = { module = "io.opentelemetry.semconv:opentelemetry-semconv", version = "1.34.0" }
 opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version = "1.52.0" }

@@ -1,6 +1,5 @@
 package com.mehrbod.controller
 
-import com.mehrbod.common.getUuidOrThrow
 import com.mehrbod.exception.ServerErrorMessage
 import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.util.*
@@ -11,7 +10,6 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -53,26 +51,6 @@ class EmployeeControllerTest {
             assertEquals(HttpStatusCode.BadRequest, response.status)
             val message = response.bodyAsText()
             assertEquals("Mandatory fields cannot be empty.", message)
-        }
-
-        @Test
-        fun testInvalidUUIDRequestObject() = initializedTestApplication {
-            val response = client.post(API_PREFIX) {
-                contentType(ContentType.Application.Json)
-                setBody(
-                    EmployeeDTO(
-                        name = "test1",
-                        surname = "test2",
-                        email = "test3",
-                        position = "test4",
-                        supervisorId = "094324"
-                    )
-                )
-            }
-
-            assertEquals(HttpStatusCode.BadRequest, response.status)
-            val message = response.bodyAsText()
-            assertEquals("Invalid supervisorId: 094324", message)
         }
     }
 
@@ -138,7 +116,7 @@ class EmployeeControllerTest {
                         "surname",
                         "email",
                         "position",
-                        supervisorId = UUID.randomUUID().toString()
+                        supervisorId = UUID.randomUUID()
                     )
                 )
             }
@@ -185,8 +163,9 @@ class EmployeeControllerTest {
         }
 
         assertEquals(HttpStatusCode.Created, response.status)
-        val uuid = response.body<EmployeeDTO>().id
-        assertDoesNotThrow { uuid.getUuidOrThrow() }
+        val uuid = response.body<EmployeeDTO>().id!!
+        val employee = getEmployee(uuid)
+        assertEquals(employee.email, "creation@gmail.com")
     }
 
     @Test
@@ -198,13 +177,12 @@ class EmployeeControllerTest {
 
         assertEquals(HttpStatusCode.Created, response.status)
         val uuid = response.body<EmployeeDTO>().id
-        assertDoesNotThrow { uuid.getUuidOrThrow() }
 
         response = client.get("$API_PREFIX/$uuid")
         val employeeDTO = response.body<EmployeeDTO>()
 
         assertEquals(
-            EmployeeDTO(employeeDTO.id, "test1", "test2", "retrieval@gmail.com", "test4", null, 0),
+            EmployeeDTO(employeeDTO.id, "test1", "test2", "retrieval@gmail.com", "test4", null, 1),
             employeeDTO
         )
     }

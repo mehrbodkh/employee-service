@@ -13,6 +13,7 @@ import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
+import java.util.UUID
 import kotlin.coroutines.EmptyCoroutineContext
 
 suspend fun measureRPS(requestCount: Int, block: suspend () -> Unit) {
@@ -43,12 +44,12 @@ private fun ApplicationTestBuilder.initializeApplication() {
 }
 
 fun getDefaultEmployeeDTO(
-    id: String? = null,
+    id: UUID? = null,
     name: String = "John",
     surname: String = "Doe",
     position: String = "CTO",
     email: String = "default@mail.com",
-    supervisorId: String? = null,
+    supervisorId: UUID? = null,
     subordinatesCount: Int? = null,
 ) = EmployeeDTO(id, name, surname, email, position, supervisorId, subordinatesCount)
 
@@ -65,7 +66,7 @@ suspend fun ApplicationTestBuilder.updateEmployee(id: String, employee: Employee
         setBody(employee)
     }.body<EmployeeDTO>()
 
-suspend fun ApplicationTestBuilder.getEmployee(id: String) =
+suspend fun ApplicationTestBuilder.getEmployee(id: UUID) =
     client.get("$API_PREFIX/$id") {}.body<EmployeeDTO>()
 
 

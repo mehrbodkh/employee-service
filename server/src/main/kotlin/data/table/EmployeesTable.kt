@@ -1,6 +1,5 @@
 package com.mehrbod.data.table
 
-import com.mehrbod.common.getUuidOrThrow
 import com.mehrbod.data.table.EmployeesTable.email
 import com.mehrbod.data.table.EmployeesTable.name
 import com.mehrbod.data.table.EmployeesTable.position
@@ -36,22 +35,22 @@ object EmployeesTable : UUIDTable("employees") {
 }
 
 fun ResultRow.convertToEmployeeDTO() = EmployeeDTO(
-    id = this[EmployeesTable.id].value.toString(),
+    id = this[EmployeesTable.id].value,
     name = this[name],
     surname = this[surname],
     email = this[email],
     position = this[position],
-    supervisorId = this[supervisor]?.value?.toString(),
+    supervisorId = this[supervisor]?.value,
     subordinatesCount = 0,
 )
 
 fun ResultRow.convertToEmployeeNodeDTO() = EmployeeNodeDTO(
-    id = this[EmployeesTable.id].value.toString(),
+    id = this[EmployeesTable.id].value,
     name = this[name],
     surname = this[surname],
     email = this[email],
     position = this[position],
-    supervisorId = this[supervisor]?.value?.toString(),
+    supervisorId = this[supervisor]?.value,
 )
 
 /**
@@ -63,26 +62,20 @@ suspend fun EmployeesTable.insertAndGet(employee: EmployeeDTO) = insertAndGetId 
     it[email] = employee.email
     it[position] = employee.position
     it[supervisor] = employee.supervisorId?.let {
-        EntityIDFunctionProvider.createEntityID(
-            employee.supervisorId.getUuidOrThrow(),
-            EmployeesTable
-        )
+        EntityIDFunctionProvider.createEntityID(employee.supervisorId, EmployeesTable)
     }
 }.let {
-    employee.copy(id = it.value.toString())
+    employee.copy(id = it.value)
 }
 
 suspend fun EmployeesTable.update(employee: EmployeeDTO) = update(
-    where = { EmployeesTable.id eq employee.id.getUuidOrThrow() },
+    where = { EmployeesTable.id eq employee.id },
 ) {
     it[name] = employee.name
     it[surname] = employee.surname
     it[email] = employee.email
     it[position] = employee.position
     it[supervisor] = employee.supervisorId?.let {
-        EntityIDFunctionProvider.createEntityID(
-            employee.supervisorId.getUuidOrThrow(),
-            EmployeesTable
-        )
+        EntityIDFunctionProvider.createEntityID(employee.supervisorId, EmployeesTable)
     }
 }

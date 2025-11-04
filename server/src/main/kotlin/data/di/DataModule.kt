@@ -3,6 +3,8 @@ package com.mehrbod.data.di
 import com.mehrbod.common.Environment
 import com.mehrbod.data.datasource.DatabaseEmployeeDataSource
 import com.mehrbod.data.datasource.EmployeeDataSource
+import com.mehrbod.data.datasource.review.DatabaseReviewDataSource
+import com.mehrbod.data.datasource.review.PerformanceReviewDataSource
 import com.mehrbod.data.factory.createDbConnection
 import io.ktor.server.application.*
 import org.jetbrains.exposed.v1.core.vendors.H2Dialect
@@ -36,4 +38,6 @@ val dataModule = DI.Module("dbModule") {
     bindSingleton<EmployeeDataSource>("database") {
         DatabaseEmployeeDataSource(instance(), instance("io"), instance("default"))
     }
+
+    bindSingleton<PerformanceReviewDataSource>("database") { DatabaseReviewDataSource(instance(), instance("io")) }
 }

@@ -1,13 +1,17 @@
 package com.mehrbod.model
 
+import com.mehrbod.common.UUIDSerializer
 import kotlinx.serialization.Serializable
+import java.util.UUID
 
 @Serializable
 data class EmployeeNodeDTO(
-    val id: String,
+    @Serializable(with = UUIDSerializer::class)
+    val id: UUID,
     val name: String,
     val surname: String,
     val position: String,
     val email: String,
-    val supervisorId: String?,
+    @Serializable(with = UUIDSerializer::class)
+    val supervisorId: UUID?,
 )

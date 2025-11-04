@@ -1,6 +1,5 @@
 package com.mehrbod.data.datasource
 
-import com.mehrbod.common.getUuidOrThrow
 import com.mehrbod.data.table.*
 import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.model.EmployeeDTO
@@ -31,13 +30,13 @@ class DatabaseEmployeeDataSource(
     override suspend fun save(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
             val insertedEmployee = EmployeesTable.insertAndGet(employee)
-            val insertedId = insertedEmployee.id.getUuidOrThrow()
+            val insertedId = insertedEmployee.id!!
 
             EmployeeHierarchyTable.insert(insertedId, insertedId, 0)
 
             if (employee.supervisorId != null) {
                 EmployeeHierarchyTable.selectAll()
-                    .where { EmployeeHierarchyTable.descendant eq employee.supervisorId.getUuidOrThrow() }
+                    .where { EmployeeHierarchyTable.descendant eq employee.supervisorId }
                     .map { it[EmployeeHierarchyTable.ancestor] to it[EmployeeHierarchyTable.distance] }
                     .toList()
                     .forEach { (ancId, dist) ->
@@ -51,19 +50,19 @@ class DatabaseEmployeeDataSource(
 
     override suspend fun update(newEmployee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         suspendTransaction(db) {
-            val id = newEmployee.id.getUuidOrThrow()
+            val id = newEmployee.id ?: throw Exception("Employee id cannot be empty")
             val currentEmployee = EmployeesTable.selectAll()
                 .where { EmployeesTable.id eq id }
                 .singleOrNull()
                 ?.convertToEmployeeDTO()
-                ?: throw EmployeeNotFoundException(id.toString())
+                ?: throw EmployeeNotFoundException(id)
 
             val currentSupervisorId = currentEmployee.supervisorId
             val newSupervisorId = newEmployee.supervisorId
 
             if (newSupervisorId != null && newSupervisorId != currentSupervisorId) {
                 EmployeesTable.selectAll()
-                    .where { EmployeesTable.id eq newSupervisorId.getUuidOrThrow() }
+                    .where { EmployeesTable.id eq newSupervisorId }
                     .singleOrNull() ?: throw EmployeeNotFoundException(newSupervisorId)
 
                 val subtree = EmployeeHierarchyTable.selectAll()
@@ -81,7 +80,7 @@ class DatabaseEmployeeDataSource(
                 }
 
                 EmployeeHierarchyTable.selectAll()
-                    .where { EmployeeHierarchyTable.descendant eq newSupervisorId.getUuidOrThrow() }
+                    .where { EmployeeHierarchyTable.descendant eq newSupervisorId }
                     .map { it[EmployeeHierarchyTable.ancestor] to it[EmployeeHierarchyTable.distance] }
                     .toList()
                     .forEach { (ancestor, depth) ->
@@ -113,7 +112,7 @@ class DatabaseEmployeeDataSource(
                 val supervisorId = EmployeesTable.selectAll()
                     .where { EmployeesTable.id eq id }
                     .onEmpty {
-                        throw EmployeeNotFoundException(id.toString())
+                        throw EmployeeNotFoundException(id)
                     }
                     .map { it[EmployeesTable.supervisor] }
                     .singleOrNull()?.value

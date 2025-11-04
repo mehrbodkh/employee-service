@@ -39,7 +39,7 @@ class EmployeeRepository(
     }
 
     suspend fun getById(id: UUID): EmployeeDTO = withContext(ioDispatcher) {
-        dbDataSource.getById(id) ?: throw EmployeeNotFoundException(id.toString())
+        dbDataSource.getById(id) ?: throw EmployeeNotFoundException(id)
     }
 
     suspend fun getRootSubordinates(depth: Int) = withContext(ioDispatcher) {
