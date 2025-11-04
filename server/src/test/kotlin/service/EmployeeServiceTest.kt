@@ -29,7 +29,7 @@ class EmployeeServiceTest {
     @Test
     fun `should create employee`() = runTest {
         val employeeDTO = EmployeeDTO(
-            "id", "name", "surname", "email", "position", "supervisor", 1
+            UUID.randomUUID(), "name", "surname", "email", "position", UUID.randomUUID(), 1
         )
         coEvery { employeeRepository.createEmployee(any()) } returns employeeDTO
         coEvery { employeeRepository.getSubordinates(any()) } returns emptyList()
@@ -43,7 +43,7 @@ class EmployeeServiceTest {
     @Test
     fun `should fetch employee`() = runTest {
         val employeeDTO = EmployeeDTO(
-            "id", "name", "surname", "email", "position", "supervisor", 0
+            UUID.randomUUID(), "name", "surname", "email", "position", UUID.randomUUID(), 0
         )
         coEvery { employeeRepository.getById(any()) } returns employeeDTO
         coEvery { employeeRepository.getSubordinates(any()) } returns listOf(mockk(), mockk())
@@ -58,7 +58,7 @@ class EmployeeServiceTest {
     @Test
     fun `should update employee - success`() = runTest {
         val employeeDTO = EmployeeDTO(
-            "id", "name", "surname", "email", "position", UUID.randomUUID().toString(), 0
+            UUID.randomUUID(), "name", "surname", "email", "position", UUID.randomUUID(), 0
         )
         coEvery { employeeRepository.updateEmployee(any()) } returns employeeDTO
 
@@ -69,7 +69,7 @@ class EmployeeServiceTest {
 
     @Test
     fun `should update employee - failure`() = runTest {
-        val id = UUID.randomUUID().toString()
+        val id = UUID.randomUUID()
         val employeeDTO = EmployeeDTO(
             id, "name", "surname", "email", "position", id, 0
         )

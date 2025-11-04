@@ -18,11 +18,6 @@ class EmployeeController(
             if (it.name.isBlank() || it.surname.isBlank() || it.email.isBlank() || it.position.isBlank()) {
                 return@validate ValidationResult.Invalid("Mandatory fields cannot be empty.")
             }
-            try {
-                it.supervisorId?.getUuidOrThrow()
-            } catch (_: Exception) {
-                return@validate ValidationResult.Invalid("Invalid supervisorId: ${it.supervisorId}")
-            }
             ValidationResult.Valid
         }
     }
@@ -38,7 +33,7 @@ class EmployeeController(
         put("{id}") {
             val request = call.receive<EmployeeDTO>()
             val id = call.parameters["id"].getUuidOrThrow()
-            val response = employeeService.updateEmployee(request.copy(id = id.toString()))
+            val response = employeeService.updateEmployee(request.copy(id = id))
             call.respond(HttpStatusCode.OK, response)
         }
 
