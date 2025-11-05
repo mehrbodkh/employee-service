@@ -1,15 +1,11 @@
-package com.mehrbod
+package com.mehrbod.module
 
-import com.mehrbod.common.Environment
 import com.mehrbod.notification.model.ManagerChangedEvent
 import com.mehrbod.notification.model.ReviewSubmittedEvent
 import io.github.flaxoos.ktor.server.plugins.kafka.*
 import io.github.flaxoos.ktor.server.plugins.kafka.components.fromRecord
 import io.ktor.server.application.*
 import kotlinx.coroutines.launch
-import org.h2.tools.Server
-import org.kodein.di.instance
-import org.kodein.di.ktor.closestDI
 
 const val CONSUMER_PORT = 8084
 const val PRODUCER_PORT = 8082
@@ -18,16 +14,7 @@ const val SCHEMA_REGISTRY_URL = "http://localhost:8081"
 const val REVIEW_TOPIC_NAME = "review"
 const val MANAGER_TOPIC_NAME = "manager"
 
-fun Application.configureDatabases() {
-    val environment by closestDI().instance<Environment>()
-    if (environment == Environment.DEV) {
-        try {
-            Server.createWebServer("-webPort", "8082", "-tcpAllowOthers").start()
-        } catch (e: Exception) {
-            log.error(e.message)
-        }
-    }
-
+fun Application.configureKafka() {
     installKafka {
         val reviewEvents = TopicName.named(REVIEW_TOPIC_NAME)
         val managerEvents = TopicName.named(MANAGER_TOPIC_NAME)

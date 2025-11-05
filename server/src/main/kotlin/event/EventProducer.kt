@@ -3,6 +3,6 @@ package com.mehrbod.notification
 
 import com.mehrbod.notification.model.Event
 
-interface NotificationProducer {
+interface EventProducer {
     suspend fun sendEvent(event: Event)
 }

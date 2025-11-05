@@ -1,6 +1,7 @@
 package com.mehrbod.service.di
 
 import com.mehrbod.service.EmployeeService
+import com.mehrbod.service.NotificationService
 import com.mehrbod.service.OrganizationService
 import com.mehrbod.service.ReviewService
 import org.kodein.di.DI
@@ -11,4 +12,5 @@ val serviceModule = DI.Module("serviceModule") {
     bindSingleton { EmployeeService(instance(), instance()) }
     bindSingleton { OrganizationService(instance()) }
     bindSingleton { ReviewService(instance(), instance(), instance()) }
+    bindSingleton { NotificationService(instance()) }
 }

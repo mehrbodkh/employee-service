@@ -1,4 +1,4 @@
-package com.mehrbod
+package com.mehrbod.module
 
 import com.mehrbod.controller.BaseController
 import io.ktor.server.application.*

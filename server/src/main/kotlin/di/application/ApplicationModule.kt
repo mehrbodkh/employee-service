@@ -1,8 +1,8 @@
 package com.mehrbod.di.application
 
 import com.mehrbod.common.Environment
-import com.mehrbod.notification.NotificationProducer
-import com.mehrbod.notification.KafkaNotificationProducer
+import com.mehrbod.notification.EventProducer
+import com.mehrbod.notification.KafkaEventProducer
 import io.github.flaxoos.ktor.server.plugins.kafka.kafkaProducer
 import io.ktor.server.application.*
 import kotlinx.coroutines.CoroutineDispatcher
@@ -33,5 +33,5 @@ val applicationModule = DI.Module("applicationModule") {
         app.kafkaProducer!!
     }
 
-    bindSingleton<NotificationProducer> { KafkaNotificationProducer(instance<Application>().kafkaProducer!!) }
+    bindSingleton<EventProducer> { KafkaEventProducer(instance<Application>().kafkaProducer!!) }
 }

@@ -21,10 +21,10 @@ import kotlin.coroutines.resumeWithException
  * This works just fine for this small of a project, however, we can also send user change event (Generic one)
  * on one topic, and delegate the task of event type parsing to the consumers.
  */
-class KafkaNotificationProducer(
+class KafkaEventProducer(
     private val producer: KafkaProducer<KafkaRecordKey, GenericRecord>,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-) : NotificationProducer {
+) : EventProducer {
 
     override suspend fun sendEvent(event: Event) {
         withContext(ioDispatcher) {
