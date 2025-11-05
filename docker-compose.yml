@@ -60,6 +60,15 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: employees_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   app:
     container_name: employee-service
     build:
@@ -81,3 +90,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

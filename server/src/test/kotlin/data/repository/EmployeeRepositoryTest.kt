@@ -1,6 +1,7 @@
 package com.mehrbod.data.repository
 
 import com.mehrbod.data.datasource.employee.DatabaseEmployeeDataSource
+import com.mehrbod.data.datasource.employee.EmployeeCacheDataSource
 import com.mehrbod.model.EmployeeDTO
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -20,8 +21,11 @@ class EmployeeRepositoryTest {
     @MockK
     private lateinit var dataSource: DatabaseEmployeeDataSource
 
+    @MockK
+    private lateinit var cacheDataSource: EmployeeCacheDataSource
+
     private val repository by lazy {
-        EmployeeRepository(dataSource, Dispatchers.Unconfined)
+        EmployeeRepository(dataSource, cacheDataSource, Dispatchers.Unconfined)
     }
 
     @Test

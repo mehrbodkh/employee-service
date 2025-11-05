@@ -8,18 +8,19 @@ import io.github.flaxoos.ktor.server.plugins.kafka.components.fromRecord
 import io.ktor.server.application.*
 import kotlinx.coroutines.launch
 
-const val CONSUMER_PORT = 8084
-const val PRODUCER_PORT = 8082
-const val BOOTSTRAP_SERVERS = "broker:9092"
-const val SCHEMA_REGISTRY_URL = "http://schema-registry:8081"
 const val REVIEW_TOPIC_NAME = "review"
 const val MANAGER_TOPIC_NAME = "manager"
 
 fun Application.configureKafka() {
+    val config = environment.config.config("kafka")
+
+    val schemaRegistryUrlConfig = config.property("schema.registry.url").getString()
+    val bootstrapServersConfig = config.property("common.bootstrap.servers").getString()
+
     installKafka {
         val reviewEvents = TopicName.named(REVIEW_TOPIC_NAME)
         val managerEvents = TopicName.named(MANAGER_TOPIC_NAME)
-        schemaRegistryUrl = SCHEMA_REGISTRY_URL
+        schemaRegistryUrl = schemaRegistryUrlConfig
         topic(reviewEvents) {
             partitions = 1
             replicas = 1
@@ -29,7 +30,7 @@ fun Application.configureKafka() {
             replicas = 1
         }
         producer {
-            bootstrapServers = BOOTSTRAP_SERVERS
+            bootstrapServers = bootstrapServersConfig
             retries = 1
             clientId = "producer"
         }
@@ -39,7 +40,7 @@ fun Application.configureKafka() {
         }
         consumer {
             maxPollRecords = 50
-            bootstrapServers = BOOTSTRAP_SERVERS
+            bootstrapServers = bootstrapServersConfig
             groupId = "consumer-group"
             clientId = "consumer"
             maxPollIntervalMs = 2000
