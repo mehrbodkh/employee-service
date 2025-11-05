@@ -21,24 +21,17 @@ database:
     database: "employee"
     user: "username"
     password: "password"
+redis:
+  url: "redis://redis:6379"
 kafka:
-  schema.registry.url:
-    - "http://localhost:8081"
+  schema:
+    registry:
+      url: "http://schema-registry:8081"
   common:
-    bootstrap.servers:
-      - "localhost:29092"
-    # Additional attributes
+    bootstrap:
+      servers: "broker:9092"
   admin:
-  # Additional attributes
   consumer:
     group.id: "notification-group"
-    # Additional attributes
   producer:
     client.id: "my-client-id"
-    # Additional attributes
-  topics:
-    - name: review-event
-      partitions: 1
-      configs:
-        message.timestamp.type: CreateTime
-        # Additional attributes

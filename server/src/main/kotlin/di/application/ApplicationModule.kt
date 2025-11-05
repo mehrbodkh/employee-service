@@ -37,5 +37,8 @@ val applicationModule = DI.Module("applicationModule") {
 
     bindSingleton<EventProducer> { KafkaEventProducer(instance<Application>().kafkaProducer) }
 
-    bindSingleton { RedisClientWrapper(RedisClient.create("redis://redis:6379")) }
+    bindSingleton {
+        val url = instance<Application>().environment.config.property("redis.url").getString()
+        RedisClientWrapper(RedisClient.create(url))
+    }
 }

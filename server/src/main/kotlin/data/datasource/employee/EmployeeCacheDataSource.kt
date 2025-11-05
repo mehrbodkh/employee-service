@@ -1,44 +1,27 @@
 package com.mehrbod.data.datasource.employee
 
 import com.mehrbod.client.RedisClientWrapper
-import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.model.EmployeeNodeDTO
-import java.util.UUID
+import java.util.*
 
-class EmployeeCacheDataSource(
+interface EmployeeCacheDataSource {
+    suspend fun setSubordinates(managerId: UUID, depth: Int, data: List<EmployeeNodeDTO>)
+    suspend fun getSubordinates(managerId: UUID, depth: Int): List<EmployeeNodeDTO>?
+    suspend fun setSupervisors(managerId: UUID, depth: Int, data: List<EmployeeNodeDTO>)
+    suspend fun getSupervisors(employeeId: UUID, depth: Int): List<EmployeeNodeDTO>?
+    suspend fun setRootSubordinates(depth: Int, data: List<List<EmployeeNodeDTO>>)
+    suspend fun getRootSubordinates(depth: Int): List<List<EmployeeNodeDTO>>?
+}
+
+class EmployeeCacheDataSourceImpl(
     private val redis: RedisClientWrapper
-) {
+) : EmployeeCacheDataSource {
 
-    private fun idCacheKey(id: UUID) = "employee:$id"
     private fun rootCacheKey(depth: Int) = "employee:root:$depth"
-    private fun subCountCacheKey(id: UUID) = "employee:subcount:$id"
-    private fun subCacheKey(id: UUID, depth: Int) = "employee:sub:$id:$depth"
-    private fun superCacheKey(id: UUID, depth: Int) = "employee:super:$id:$depth"
-    private fun emailCacheKey(email: String) = "employee:email:$email"
+    private fun subCacheKey(id: UUID, depth: Int) = "employee:subordinate:$id:$depth"
+    private fun superCacheKey(id: UUID, depth: Int) = "employee:supervisor:$id:$depth"
 
-    suspend fun save(employee: EmployeeDTO): EmployeeDTO {
-        employee.id?.let {
-            deleteCache(it, employee.email)
-            redis.set(idCacheKey(employee.id), employee)
-            redis.set(emailCacheKey(employee.email), employee)
-        }
-        return employee
-    }
-
-    suspend fun delete(id: UUID) {
-        redis.delete(idCacheKey(id))
-        deleteCache(id, null)
-    }
-
-    suspend fun setSubordinatesCount(managerId: UUID, count: Long) {
-        redis.set(subCountCacheKey(managerId), count)
-    }
-
-    suspend fun getSubordinatesCount(managerId: UUID): Long? {
-        return redis.get<Long>(subCountCacheKey(managerId))
-    }
-
-    suspend fun setSubordinates(
+    override suspend fun setSubordinates(
         managerId: UUID,
         depth: Int,
         data: List<EmployeeNodeDTO>
@@ -46,14 +29,14 @@ class EmployeeCacheDataSource(
         redis.set(subCacheKey(managerId, depth), data)
     }
 
-    suspend fun getSubordinates(
+    override suspend fun getSubordinates(
         managerId: UUID,
         depth: Int
     ): List<EmployeeNodeDTO>? {
         return redis.get(subCacheKey(managerId, depth))
     }
 
-    suspend fun setSupervisors(
+    override suspend fun setSupervisors(
         managerId: UUID,
         depth: Int,
         data: List<EmployeeNodeDTO>
@@ -61,36 +44,18 @@ class EmployeeCacheDataSource(
         redis.set(superCacheKey(managerId, depth), data)
     }
 
-    suspend fun getSupervisors(
+    override suspend fun getSupervisors(
         employeeId: UUID,
         depth: Int
     ): List<EmployeeNodeDTO>? {
         return redis.get(superCacheKey(employeeId, depth))
     }
 
-    suspend fun setRootSubordinates(depth: Int, data: List<List<EmployeeNodeDTO>>) {
+    override suspend fun setRootSubordinates(depth: Int, data: List<List<EmployeeNodeDTO>>) {
         redis.set(rootCacheKey(depth), data)
     }
 
-    suspend fun getRootSubordinates(depth: Int): List<List<EmployeeNodeDTO>>? {
+    override suspend fun getRootSubordinates(depth: Int): List<List<EmployeeNodeDTO>>? {
         return redis.get(rootCacheKey(depth))
-    }
-
-    suspend fun getById(id: UUID): EmployeeDTO? {
-        return redis.get<EmployeeDTO>(id.toString())
-    }
-
-    suspend fun setByEmail(email: String, employee: EmployeeDTO) {
-        redis.set(emailCacheKey(email), employee)
-    }
-
-    suspend fun getByEmail(email: String): EmployeeDTO? {
-        return redis.get(emailCacheKey(email))
-    }
-
-    private suspend fun deleteCache(id: UUID, email: String?) {
-        redis.delete(idCacheKey(id))
-        redis.delete(subCountCacheKey(id))
-        email?.let { redis.delete(emailCacheKey(email)) }
     }
 }

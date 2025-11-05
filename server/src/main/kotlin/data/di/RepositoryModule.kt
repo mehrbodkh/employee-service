@@ -11,6 +11,6 @@ val repositoryModule = DI.Module("RepositoryModule") {
         EmployeeRepository(instance("database"), instance(), instance("io"))
     }
     bindSingleton {
-        ReviewRepository(instance("database"), instance(), instance("io"))
+        ReviewRepository(instance("database"), instance("io"))
     }
 }

@@ -35,10 +35,6 @@ class RedisClientWrapper(
         json.decodeFromString(str)
     }
 
-    suspend fun delete(key: String) = withContext(ioDispatcher) {
-        connection.del(key)
-    }
-
     suspend fun close() = withContext(ioDispatcher) {
         client.shutdown()
     }

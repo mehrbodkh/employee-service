@@ -40,6 +40,8 @@ dependencies {
 
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.mockk)
+    testImplementation(libs.testcontainers)
+    testImplementation(libs.testcontainers.junit5)
     testImplementation(kotlin("test"))
 }
 

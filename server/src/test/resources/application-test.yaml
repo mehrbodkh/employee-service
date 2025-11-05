@@ -22,23 +22,14 @@ database:
     user: "username"
     password: "password"
 kafka:
-  schema.registry.url:
-    - "SCHEMA_REGISTRY_URL"
+  schema:
+    registry:
+      url: "http://schema-registry:8081"
   common:
-    bootstrap.servers:
-      - "BOOTSTRAP_SERVERS"
-    # Additional attributes
+    bootstrap:
+      servers: "broker:9092"
   admin:
-  # Additional attributes
   consumer:
-    group.id: "my-group-id"
-    # Additional attributes
+    group.id: "notification-group"
   producer:
     client.id: "my-client-id"
-    # Additional attributes
-  topics:
-    - name: my-topic
-      partitions: 1
-      configs:
-        message.timestamp.type: CreateTime
-        # Additional attributes

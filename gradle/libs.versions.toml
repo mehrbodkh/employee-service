@@ -9,6 +9,7 @@ r2dbc-pool = "1.0.2.RELEASE"
 kodein = "7.28.0"
 mockk = "1.14.6"
 lettuce = "7.0.0.RELEASE"
+testcontainers = "1.20.3"
 
 [libraries]
 ktor-server-default-headers = { module = "io.ktor:ktor-server-default-headers", version.ref = "ktor" }
@@ -44,6 +45,9 @@ ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref 
 kodein = { module = "org.kodein.di:kodein-di-framework-ktor-server-jvm", version.ref = "kodein"}
 mockk = { module = "io.mockk:mockk", version.ref = "mockk"}
 lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce"}
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers"}
+testcontainers-junit5 = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers"}
+testcontainers-redis = { module = "org.testcontainers:redis", version.ref = "testcontainers"}
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

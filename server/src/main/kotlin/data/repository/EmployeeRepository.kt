@@ -12,38 +12,33 @@ import java.util.*
 
 class EmployeeRepository(
     private val dbDataSource: EmployeeDataSource,
+    /**
+     * Using redis as cache on repository level, mostly due to the fact that it is being used as a read through
+     * mechanism, which repository can be a suitable place for.
+     * It also, for time saving purposes, is only being used for read heavy requests.
+     */
     private val cacheDataSource: EmployeeCacheDataSource,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
     suspend fun createEmployee(employee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
         try {
-            dbDataSource.save(employee).also {
-                cacheDataSource.save(it)
-            }
+            dbDataSource.save(employee)
         } catch (_: Exception) {
             throw EmployeeCouldNotBeCreatedException()
         }
     }
 
     suspend fun updateEmployee(updatedEmployee: EmployeeDTO): EmployeeDTO = withContext(ioDispatcher) {
-        dbDataSource.update(updatedEmployee).also {
-            cacheDataSource.save(it)
-        }
+        dbDataSource.update(updatedEmployee)
     }
 
     suspend fun deleteEmployee(id: UUID) {
-        dbDataSource.delete(id).also {
-            cacheDataSource.delete(id)
-        }
+        dbDataSource.delete(id)
     }
 
     suspend fun getSubordinatesCount(id: UUID): Long = withContext(ioDispatcher) {
-        cacheDataSource.getSubordinatesCount(id) ?: run {
-            dbDataSource.getSubordinatesCount(id).also {
-                cacheDataSource.setSubordinatesCount(id, it)
-            }
-        }
+        dbDataSource.getSubordinatesCount(id)
     }
 
     suspend fun getSubordinates(id: UUID, depth: Int = 1): List<EmployeeNodeDTO> = withContext(ioDispatcher) {
@@ -63,19 +58,11 @@ class EmployeeRepository(
     }
 
     suspend fun getById(id: UUID): EmployeeDTO? = withContext(ioDispatcher) {
-        cacheDataSource.getById(id) ?: run {
-            dbDataSource.getById(id)?.also {
-                cacheDataSource.save(it)
-            }
-        }
+        dbDataSource.getById(id)
     }
 
     suspend fun getByEmail(email: String): EmployeeDTO? = withContext(ioDispatcher) {
-        cacheDataSource.getByEmail(email) ?: run {
-            dbDataSource.getByEmail(email)?.also {
-                cacheDataSource.setByEmail(email, it)
-            }
-        }
+        dbDataSource.getByEmail(email)
     }
 
     suspend fun getRootSubordinates(depth: Int): List<List<EmployeeNodeDTO>> = withContext(ioDispatcher) {
