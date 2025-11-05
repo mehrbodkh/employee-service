@@ -1,19 +1,19 @@
 package com.mehrbod.service
 
-import com.mehrbod.model.ReviewDTO
 import com.mehrbod.event.EventProducer
+import com.mehrbod.model.EmployeeDTO
+import com.mehrbod.model.ReviewDTO
 import com.mehrbod.notification.model.ManagerChangedEvent
 import com.mehrbod.notification.model.ReviewSubmittedEvent
-import java.util.UUID
 
 class NotificationService(
     private val eventProducer: EventProducer
 ) {
-    suspend fun sendSubmitReviewNotification(id: UUID, review: ReviewDTO) {
-        eventProducer.sendEvent(ReviewSubmittedEvent(employeeID = id, review = review))
+    suspend fun sendSubmitReviewNotification(employee: EmployeeDTO, review: ReviewDTO) {
+        eventProducer.sendEvent(ReviewSubmittedEvent(employee= employee, review = review))
     }
 
-    suspend fun sendManagerChangedNotification(employeeId: UUID, newManagerId: UUID) {
-        eventProducer.sendEvent(ManagerChangedEvent(employeeID = employeeId, managerID = newManagerId))
+    suspend fun sendManagerChangedNotification(employee: EmployeeDTO) {
+        eventProducer.sendEvent(ManagerChangedEvent(employee = employee))
     }
 }

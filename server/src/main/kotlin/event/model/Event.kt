@@ -1,13 +1,12 @@
 package com.mehrbod.notification.model
 
-import com.mehrbod.common.UUIDSerializer
+import com.mehrbod.model.EmployeeDTO
 import com.mehrbod.model.ReviewDTO
 import com.sksamuel.avro4k.AvroNamespace
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
-import java.util.*
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -19,8 +18,7 @@ sealed interface Event {
 @AvroNamespace("com.mehrbod.employee-service")
 data class ReviewSubmittedEvent @OptIn(ExperimentalTime::class) constructor(
     override val time: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC),
-    @Serializable(with = UUIDSerializer::class)
-    val employeeID: UUID,
+    val employee: EmployeeDTO,
     val review: ReviewDTO,
 ) : Event
 
@@ -28,10 +26,7 @@ data class ReviewSubmittedEvent @OptIn(ExperimentalTime::class) constructor(
 @AvroNamespace("com.mehrbod.employee-service")
 data class ManagerChangedEvent @OptIn(ExperimentalTime::class) constructor(
     override val time: LocalDateTime = Clock.System.now().toLocalDateTime(TimeZone.UTC),
-    @Serializable(with = UUIDSerializer::class)
-    val employeeID: UUID,
-    @Serializable(with = UUIDSerializer::class)
-    val managerID: UUID,
+    val employee: EmployeeDTO,
 ) : Event
 
 fun Event.getTopic() = when (this) {

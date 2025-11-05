@@ -1,5 +1,6 @@
 package com.mehrbod
 
+import com.mehrbod.anothermicroservice.configureAnotherMicroservice
 import com.mehrbod.common.configureSerialization
 import com.mehrbod.di.configureDI
 import com.mehrbod.exception.configureGlobalExceptionHandling
@@ -22,4 +23,5 @@ fun Application.module() {
     configureMonitoring()
     configureRouting()
     configureGlobalExceptionHandling()
+    configureAnotherMicroservice()
 }

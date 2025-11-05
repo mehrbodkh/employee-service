@@ -47,7 +47,7 @@ class EmployeeService(
         val updatedEmployee = employeeRepository.updateEmployee(updatedInfo)
 
         if (updatedEmployee.supervisorId != null && updatedEmployee.supervisorId != currentEmployee.supervisorId) {
-            notificationService.sendManagerChangedNotification(id, updatedEmployee.supervisorId)
+            notificationService.sendManagerChangedNotification(updatedEmployee)
         }
         return updatedEmployee
     }

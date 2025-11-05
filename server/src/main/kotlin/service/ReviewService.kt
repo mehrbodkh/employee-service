@@ -14,11 +14,11 @@ class ReviewService(
 ) {
 
     suspend fun submitReview(id: UUID, review: SubmitReviewRequest) {
-        employeeRepository.getById(id) ?: throw EmployeeNotFoundException(id)
+        val employee = employeeRepository.getById(id) ?: throw EmployeeNotFoundException(id)
 
         val result = reviewRepository.submitReview(id, review)
 
-        notificationService.sendSubmitReviewNotification(id, result)
+        notificationService.sendSubmitReviewNotification(employee, result)
     }
 
     suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Pair<Long, List<ReviewDTO>> {

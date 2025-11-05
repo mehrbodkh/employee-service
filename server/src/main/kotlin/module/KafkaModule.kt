@@ -1,5 +1,6 @@
 package com.mehrbod.module
 
+import com.mehrbod.anothermicroservice.eventconsumer.EventReceiver
 import com.mehrbod.notification.model.ManagerChangedEvent
 import com.mehrbod.notification.model.ReviewSubmittedEvent
 import io.github.flaxoos.ktor.server.plugins.kafka.*
@@ -43,18 +44,22 @@ fun Application.configureKafka() {
             clientId = "consumer"
             maxPollIntervalMs = 2000
         }
+        /**
+         * This has been done due to the projects being close together.
+         * In real life, this section also should be handled by Kafka clients themselves.
+         */
         consumerConfig {
             consumerRecordHandler(reviewEvents) { record ->
                 launch {
                     val event = fromRecord<ReviewSubmittedEvent>(record.value())
-                    println("Received event $event")
+                    EventReceiver.eventReceived(event)
                 }
             }
 
             consumerRecordHandler(managerEvents) { record ->
                 launch {
                     val event = fromRecord<ManagerChangedEvent>(record.value())
-                    println("Received event $event")
+                    EventReceiver.eventReceived(event)
                 }
             }
         }
