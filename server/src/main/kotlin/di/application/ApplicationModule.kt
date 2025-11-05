@@ -33,5 +33,5 @@ val applicationModule = DI.Module("applicationModule") {
         app.kafkaProducer!!
     }
 
-    bindSingleton<EventProducer> { KafkaEventProducer(instance<Application>().kafkaProducer!!) }
+    bindSingleton<EventProducer> { KafkaEventProducer(instance<Application>().kafkaProducer) }
 }

@@ -23,14 +23,15 @@ import kotlin.coroutines.resumeWithException
  * on one topic, and delegate the task of event type parsing to the consumers.
  */
 class KafkaEventProducer(
-    private val producer: KafkaProducer<KafkaRecordKey, GenericRecord>,
+    // This is marked as nullable due to some testing issues
+    private val producer: KafkaProducer<KafkaRecordKey, GenericRecord>?,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : EventProducer {
 
     override suspend fun sendEvent(event: Event) {
         withContext(ioDispatcher) {
             when (event) {
-                is ManagerChangedEvent -> producer.sendEvent(
+                is ManagerChangedEvent -> producer?.sendEvent(
                     ProducerRecord(
                         event.getTopic(),
                         event.time.toString(),
@@ -38,7 +39,7 @@ class KafkaEventProducer(
                     )
                 )
 
-                is ReviewSubmittedEvent -> producer.sendEvent(
+                is ReviewSubmittedEvent -> producer?.sendEvent(
                     ProducerRecord(
                         event.getTopic(),
                         event.time.toString(),
