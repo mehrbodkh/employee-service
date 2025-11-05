@@ -180,7 +180,7 @@ class EmployeeServiceTest {
             val result = service.updateEmployee(id, getDefaultEmployeeDTO(id = id, supervisorId = supervisorId))
 
             coVerify { employeeRepository.updateEmployee(getDefaultEmployeeDTO(id = id, supervisorId = supervisorId)) }
-            coVerify { notificationService.sendManagerChangedNotification(id, supervisorId) }
+            coVerify { notificationService.sendManagerChangedNotification(result) }
             assertEquals(getDefaultEmployeeDTO(id = id, supervisorId = supervisorId), result)
         }
     }

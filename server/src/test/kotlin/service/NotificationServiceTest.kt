@@ -4,6 +4,7 @@ import com.mehrbod.model.ReviewDTO
 import com.mehrbod.event.EventProducer
 import com.mehrbod.notification.model.ManagerChangedEvent
 import com.mehrbod.notification.model.ReviewSubmittedEvent
+import com.mehrbod.util.getDefaultEmployeeDTO
 import io.mockk.CapturingSlot
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -33,11 +34,11 @@ class NotificationServiceTest {
         val slot = CapturingSlot<ReviewSubmittedEvent>()
         coEvery { eventProducer.sendEvent(capture(slot)) } returns Unit
 
-        service.sendSubmitReviewNotification(id, review)
+        service.sendSubmitReviewNotification(getDefaultEmployeeDTO(id = id), review)
 
         coVerify { eventProducer.sendEvent(any()) }
         assertEquals(review, slot.captured.review)
-        assertEquals(id, slot.captured.employeeID)
+        assertEquals(id, slot.captured.employee.id)
     }
 
     @Test
@@ -47,10 +48,10 @@ class NotificationServiceTest {
         val slot = CapturingSlot<ManagerChangedEvent>()
         coEvery { eventProducer.sendEvent(capture(slot)) } returns Unit
 
-        service.sendManagerChangedNotification(id, managerId)
+        service.sendManagerChangedNotification(getDefaultEmployeeDTO(id = id, supervisorId = managerId))
 
         coVerify { eventProducer.sendEvent(any()) }
-        assertEquals(managerId, slot.captured.managerID)
-        assertEquals(id, slot.captured.employeeID)
+        assertEquals(managerId, slot.captured.employee.supervisorId)
+        assertEquals(id, slot.captured.employee.id)
     }
 }

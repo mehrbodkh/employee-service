@@ -61,7 +61,7 @@ class ReviewServiceTest {
 
             coVerify { employeeRepository.getById(id) }
             coVerify { reviewRepository.submitReview(any(), any()) }
-            coVerify { notificationService.sendSubmitReviewNotification(id, any()) }
+            coVerify { notificationService.sendSubmitReviewNotification(any(), any()) }
         }
     }
 
