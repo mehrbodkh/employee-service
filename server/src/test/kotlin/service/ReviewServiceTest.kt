@@ -8,6 +8,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -27,6 +28,9 @@ class ReviewServiceTest {
 
     @MockK
     private lateinit var employeeRepository: EmployeeRepository
+
+    @RelaxedMockK
+    private lateinit var notificationService: NotificationService
 
     @InjectMockKs
     private lateinit var service: ReviewService
@@ -51,12 +55,13 @@ class ReviewServiceTest {
             val review = mockk<SubmitReviewRequest>()
 
             coEvery { employeeRepository.getById(id) } returns mockk()
-            coEvery { reviewRepository.submitReview(any(), any()) } returns Unit
+            coEvery { reviewRepository.submitReview(any(), any()) } returns mockk()
 
             service.submitReview(id, review)
 
             coVerify { employeeRepository.getById(id) }
             coVerify { reviewRepository.submitReview(any(), any()) }
+            coVerify { notificationService.sendSubmitReviewNotification(any(), any()) }
         }
     }
 

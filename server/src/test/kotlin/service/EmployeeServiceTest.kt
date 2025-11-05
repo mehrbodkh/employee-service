@@ -9,6 +9,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
+import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
@@ -26,6 +27,9 @@ class EmployeeServiceTest {
 
     @MockK
     private lateinit var employeeRepository: EmployeeRepository
+
+    @RelaxedMockK
+    private lateinit var notificationService: NotificationService
 
     @InjectMockKs
     private lateinit var service: EmployeeService
@@ -176,6 +180,7 @@ class EmployeeServiceTest {
             val result = service.updateEmployee(id, getDefaultEmployeeDTO(id = id, supervisorId = supervisorId))
 
             coVerify { employeeRepository.updateEmployee(getDefaultEmployeeDTO(id = id, supervisorId = supervisorId)) }
+            coVerify { notificationService.sendManagerChangedNotification(result) }
             assertEquals(getDefaultEmployeeDTO(id = id, supervisorId = supervisorId), result)
         }
     }

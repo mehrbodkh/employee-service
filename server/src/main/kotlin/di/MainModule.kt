@@ -1,5 +1,6 @@
 package com.mehrbod.di
 
+import com.mehrbod.anothermicroservice.di.anotherMicroServiceModule
 import com.mehrbod.controller.di.controllerModule
 import com.mehrbod.data.di.dataModule
 import com.mehrbod.data.di.repositoryModule
@@ -15,4 +16,5 @@ fun Application.configureDI() = di {
     import(repositoryModule)
     import(serviceModule)
     import(controllerModule)
+    import(anotherMicroServiceModule)
 }

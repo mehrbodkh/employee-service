@@ -10,12 +10,15 @@ import java.util.*
 class ReviewService(
     private val reviewRepository: ReviewRepository,
     private val employeeRepository: EmployeeRepository,
+    private val notificationService: NotificationService,
 ) {
 
     suspend fun submitReview(id: UUID, review: SubmitReviewRequest) {
-        employeeRepository.getById(id) ?: throw EmployeeNotFoundException(id)
+        val employee = employeeRepository.getById(id) ?: throw EmployeeNotFoundException(id)
 
-        reviewRepository.submitReview(id, review)
+        val result = reviewRepository.submitReview(id, review)
+
+        notificationService.sendSubmitReviewNotification(employee, result)
     }
 
     suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Pair<Long, List<ReviewDTO>> {

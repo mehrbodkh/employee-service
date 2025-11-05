@@ -5,6 +5,6 @@ import com.mehrbod.model.ReviewDTO
 import java.util.UUID
 
 interface PerformanceReviewDataSource {
-    suspend fun submitReview(id: UUID, review: SubmitReviewRequest)
+    suspend fun submitReview(id: UUID, review: SubmitReviewRequest): ReviewDTO
     suspend fun fetchReviews(id: UUID, page: Int, pageSize: Int): Pair<Long, List<ReviewDTO>>
 }

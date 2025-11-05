@@ -14,7 +14,7 @@ import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import org.jetbrains.exposed.v1.r2dbc.SchemaUtils
 import org.jetbrains.exposed.v1.r2dbc.transactions.suspendTransaction
-import java.util.UUID
+import java.util.*
 import kotlin.coroutines.EmptyCoroutineContext
 
 suspend fun measureRPS(requestCount: Int, block: suspend () -> Unit) {
