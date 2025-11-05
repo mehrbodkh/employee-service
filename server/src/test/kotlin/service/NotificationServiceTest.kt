@@ -1,7 +1,7 @@
 package com.mehrbod.service
 
 import com.mehrbod.model.ReviewDTO
-import com.mehrbod.notification.EventProducer
+import com.mehrbod.event.EventProducer
 import com.mehrbod.notification.model.ManagerChangedEvent
 import com.mehrbod.notification.model.ReviewSubmittedEvent
 import io.mockk.CapturingSlot

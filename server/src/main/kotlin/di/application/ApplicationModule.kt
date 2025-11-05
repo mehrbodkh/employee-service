@@ -1,7 +1,7 @@
 package com.mehrbod.di.application
 
 import com.mehrbod.common.Environment
-import com.mehrbod.notification.EventProducer
+import com.mehrbod.event.EventProducer
 import com.mehrbod.notification.KafkaEventProducer
 import io.github.flaxoos.ktor.server.plugins.kafka.kafkaProducer
 import io.ktor.server.application.*

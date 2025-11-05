@@ -1,5 +1,6 @@
 package com.mehrbod.notification
 
+import com.mehrbod.event.EventProducer
 import com.mehrbod.notification.model.Event
 import com.mehrbod.notification.model.ManagerChangedEvent
 import com.mehrbod.notification.model.ReviewSubmittedEvent

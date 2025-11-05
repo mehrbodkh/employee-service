@@ -1,4 +1,4 @@
-package com.mehrbod.notification
+package com.mehrbod.event
 
 
 import com.mehrbod.notification.model.Event
