@@ -14,8 +14,8 @@ database:
     user: ""
     password: ""
   postgres:
-    url: "postgresql://localhost/default"
-    host: "localhost"
+    url: "postgresql://postgres:5432/employee"
+    host: "postgres"
     driver: "postgres"
     protocol: "file"
     database: "employee"

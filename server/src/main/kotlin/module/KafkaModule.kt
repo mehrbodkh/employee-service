@@ -10,8 +10,8 @@ import kotlinx.coroutines.launch
 
 const val CONSUMER_PORT = 8084
 const val PRODUCER_PORT = 8082
-const val BOOTSTRAP_SERVERS = "localhost:29092"
-const val SCHEMA_REGISTRY_URL = "http://localhost:8081"
+const val BOOTSTRAP_SERVERS = "broker:9092"
+const val SCHEMA_REGISTRY_URL = "http://schema-registry:8081"
 const val REVIEW_TOPIC_NAME = "review"
 const val MANAGER_TOPIC_NAME = "manager"
 
