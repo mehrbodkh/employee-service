@@ -8,7 +8,7 @@ import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 
 val serviceModule = DI.Module("serviceModule") {
-    bindSingleton { EmployeeService(instance()) }
+    bindSingleton { EmployeeService(instance(), instance()) }
     bindSingleton { OrganizationService(instance()) }
-    bindSingleton { ReviewService(instance(), instance()) }
+    bindSingleton { ReviewService(instance(), instance(), instance()) }
 }

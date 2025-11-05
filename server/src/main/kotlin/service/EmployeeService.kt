@@ -5,10 +5,13 @@ import com.mehrbod.exception.EmployeeNotFoundException
 import com.mehrbod.exception.OwnReferenceException
 import com.mehrbod.exception.EmailAlreadyExistsException
 import com.mehrbod.model.EmployeeDTO
+import com.mehrbod.notification.NotificationProducer
+import com.mehrbod.notification.model.ManagerChangedEvent
 import java.util.*
 
 class EmployeeService(
-    private val employeeRepository: EmployeeRepository
+    private val employeeRepository: EmployeeRepository,
+    private val notificationProducer: NotificationProducer,
 ) {
 
     suspend fun createEmployee(request: EmployeeDTO): EmployeeDTO {
@@ -43,7 +46,11 @@ class EmployeeService(
             throw EmployeeNotFoundException(updatedInfo.supervisorId)
         }
 
-        return employeeRepository.updateEmployee(updatedInfo)
+        return employeeRepository.updateEmployee(updatedInfo).also {
+            if (it.supervisorId != null && it.supervisorId != currentEmployee.supervisorId) {
+                notificationProducer.sendEvent(ManagerChangedEvent(employeeID = id, managerID = it.supervisorId))
+            }
+        }
     }
 
     suspend fun deleteEmployee(id: UUID) {

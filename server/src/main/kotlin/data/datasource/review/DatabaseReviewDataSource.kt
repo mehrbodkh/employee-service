@@ -31,18 +31,25 @@ class DatabaseReviewDataSource(
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : PerformanceReviewDataSource {
 
-    override suspend fun submitReview(id: UUID, review: SubmitReviewRequest) {
-        withContext(ioDispatcher) {
-            suspendTransaction(db) {
-                PerformanceReviewsTable.insert {
-                    it[employee] = EntityIDFunctionProvider.createEntityID(id, EmployeesTable)
-                    it[reviewDate] = Clock.System.now().toLocalDateTime(TimeZone.UTC)
-                    it[performance] = review.performance
-                    it[softSkills] = review.softSkills
-                    it[independence] = review.independence
-                    it[aspiration] = review.aspiration
-                }
+    override suspend fun submitReview(id: UUID, review: SubmitReviewRequest): ReviewDTO = withContext(ioDispatcher) {
+        suspendTransaction(db) {
+            val time = Clock.System.now().toLocalDateTime(TimeZone.UTC)
+            PerformanceReviewsTable.insert {
+                it[employee] = EntityIDFunctionProvider.createEntityID(id, EmployeesTable)
+                it[reviewDate] = time
+                it[performance] = review.performance
+                it[softSkills] = review.softSkills
+                it[independence] = review.independence
+                it[aspiration] = review.aspiration
             }
+
+            ReviewDTO(
+                time,
+                review.performance,
+                review.softSkills,
+                review.independence,
+                review.aspiration,
+            )
         }
     }
 
