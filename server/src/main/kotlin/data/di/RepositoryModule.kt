@@ -8,9 +8,9 @@ import org.kodein.di.instance
 
 val repositoryModule = DI.Module("RepositoryModule") {
     bindSingleton {
-        EmployeeRepository(instance("database"), instance("io"))
+        EmployeeRepository(instance("database"), instance(), instance("io"))
     }
     bindSingleton {
-        ReviewRepository(instance("database"), instance("io"))
+        ReviewRepository(instance("database"), instance(), instance("io"))
     }
 }

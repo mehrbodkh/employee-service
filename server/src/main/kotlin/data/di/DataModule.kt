@@ -2,7 +2,9 @@ package com.mehrbod.data.di
 
 import com.mehrbod.common.Environment
 import com.mehrbod.data.datasource.employee.DatabaseEmployeeDataSource
+import com.mehrbod.data.datasource.employee.EmployeeCacheDataSource
 import com.mehrbod.data.datasource.employee.EmployeeDataSource
+import com.mehrbod.data.datasource.review.CacheReviewDataSource
 import com.mehrbod.data.datasource.review.DatabaseReviewDataSource
 import com.mehrbod.data.datasource.review.PerformanceReviewDataSource
 import com.mehrbod.data.factory.createDbConnection
@@ -40,4 +42,7 @@ val dataModule = DI.Module("dbModule") {
     }
 
     bindSingleton<PerformanceReviewDataSource>("database") { DatabaseReviewDataSource(instance(), instance("io")) }
+
+    bindSingleton { CacheReviewDataSource(instance()) }
+    bindSingleton { EmployeeCacheDataSource(instance()) }
 }
