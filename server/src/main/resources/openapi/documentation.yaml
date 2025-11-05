@@ -1,23 +1,381 @@
-openapi: "3.0.3"
+openapi: 3.0.3
 info:
-  title: "Application API"
-  description: "Application API"
-  version: "1.0.0"
+  title: Employee service API
+  version: 1.0.0
+  description: Human Resource Information System API
 servers:
-  - url: "http://0.0.0.0:8080"
+  - url: /api/v1
 paths:
-  /:
+  /org/root:
     get:
-      description: "Hello World!"
+      summary: Get top-level root employees with subordinates
+      parameters:
+        - name: depth
+          in: query
+          description: Depth of hierarchy to fetch
+          required: false
+          schema:
+            type: integer
+            default: 1
       responses:
-        "200":
-          description: "OK"
+        '200':
+          description: List of root employee hierarchies
           content:
-            text/plain:
+            application/json:
               schema:
-                type: "string"
-              examples:
-                Example#1:
-                  value: "Hello World!"
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeNodeDTO'
+
+  /org/{id}/supervisors:
+    get:
+      summary: Get supervisors of a given employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: depth
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: List of supervisors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeNodeDTO'
+        '400':
+          description: Bad Request
+
+  /org/{id}/hierarchy:
+    get:
+      summary: Get subordinates hierarchy of a given employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: depth
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Subordinate hierarchy
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeNodeDTO'
+        '400':
+          description: Bad Request
+
+  /employees:
+    post:
+      summary: Create a new employee
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequestDTO'
+      responses:
+        '201':
+          description: Created employee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDTO'
+        '400':
+          description: Bad Request
+
+  /employees/{id}:
+    get:
+      summary: Get employee by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Employee details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDTO'
+        '400':
+          description: Bad Request
+        '404':
+          description: Not Found
+    put:
+      summary: Update an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployeeRequestDTO'
+      responses:
+        '200':
+          description: Updated employee
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeDTO'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+    delete:
+      summary: Delete an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Employee deleted
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+
+  /employees/fetch-all:
+    get:
+      summary: Get all employees
+      responses:
+        '200':
+          description: List of employees
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EmployeeDTO'
+
+  /review/{id}/submit:
+    post:
+      summary: Submit a performance review
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitReviewRequest'
+      responses:
+        '201':
+          description: Review submitted
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+
+  /review/{id}:
+    get:
+      summary: Fetch paginated reviews for an employee
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Paginated list of reviews
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseReview'
+        '404':
+          description: Not Found
+        '400':
+          description: Bad Request
+
 components:
-  schemas: {}
+  schemas:
+    EmployeeRequestDTO:
+      type: object
+      properties:
+        name:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+        position:
+          type: string
+        supervisorId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+        - name
+        - surname
+        - email
+        - position
+
+    EmployeeDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        surname:
+          type: string
+        email:
+          type: string
+        position:
+          type: string
+        supervisorId:
+          type: string
+          format: uuid
+          nullable: true
+        subordinatesCount:
+          type: integer
+          nullable: true
+      required:
+        - name
+        - surname
+        - email
+        - position
+
+    EmployeeNodeDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        surname:
+          type: string
+        position:
+          type: string
+        email:
+          type: string
+        supervisorId:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+        - id
+        - name
+        - surname
+        - position
+        - email
+
+    SubmitReviewRequest:
+      type: object
+      properties:
+        performance:
+          type: integer
+        softSkills:
+          type: integer
+        independence:
+          type: integer
+        aspiration:
+          type: integer
+      required:
+        - performance
+        - softSkills
+        - independence
+        - aspiration
+
+    ReviewDTO:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date-time
+        performance:
+          type: integer
+        softSkills:
+          type: integer
+        independence:
+          type: integer
+        aspiration:
+          type: integer
+      required:
+        - date
+        - performance
+        - softSkills
+        - independence
+        - aspiration
+
+    PaginatedResponseReview:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewDTO'
+        pagination:
+          $ref: '#/components/schemas/PaginationMetadata'
+      required:
+        - data
+        - pagination
+
+    PaginationMetadata:
+      type: object
+      properties:
+        currentPage:
+          type: integer
+        pageSize:
+          type: integer
+        totalItems:
+          type: integer
+        totalPages:
+          type: integer
+      required:
+        - currentPage
+        - pageSize
+        - totalItems
+        - totalPages
