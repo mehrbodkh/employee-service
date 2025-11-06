@@ -1,4 +1,4 @@
-package com.mehrbod
+package com.mehrbod.module
 
 import io.ktor.events.EventDefinition
 import io.ktor.http.*
@@ -14,30 +14,6 @@ import org.slf4j.event.Level
  * to our graphing solutions. That, for simplicity and size of the project, has been omitted from here.
  */
 fun Application.configureMonitoring() {
-    val openTelemetry = getOpenTelemetry(serviceName = "opentelemetry-ktor-sample-server")
-    
-//    install(KtorServerTelemetry) {
-//        setOpenTelemetry(openTelemetry)
-//
-//        capturedRequestHeaders(HttpHeaders.UserAgent)
-//
-//        spanKindExtractor {
-//            if (httpMethod == HttpMethod.Post) {
-//                SpanKind.PRODUCER
-//            } else {
-//                SpanKind.CLIENT
-//            }
-//        }
-//
-//        attributesExtractor {
-//            onStart {
-//                attributes.put("start-time", System.currentTimeMillis())
-//            }
-//            onEnd {
-//                attributes.put("end-time", System.currentTimeMillis())
-//            }
-//        }
-//    }
     install(CallLogging) {
         level = Level.INFO
         filter { call -> call.request.path().startsWith("/") }

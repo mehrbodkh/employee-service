@@ -5,14 +5,11 @@ import com.mehrbod.anothermicroservice.di.anotherMicroServiceModule
 import com.mehrbod.client.RedisClientWrapper
 import com.mehrbod.common.Environment
 import com.mehrbod.common.configureSerialization
-import com.mehrbod.configureHTTP
-import com.mehrbod.configureMonitoring
-import com.mehrbod.controller.EmployeeControllerTest
+import com.mehrbod.module.configureHTTP
+import com.mehrbod.module.configureMonitoring
 import com.mehrbod.controller.di.controllerModule
 import com.mehrbod.data.di.dataModule
 import com.mehrbod.data.di.repositoryModule
-import com.mehrbod.di.application.applicationModule
-import com.mehrbod.di.configureDI
 import com.mehrbod.event.EventProducer
 import com.mehrbod.exception.configureGlobalExceptionHandling
 import com.mehrbod.module.configureH2
