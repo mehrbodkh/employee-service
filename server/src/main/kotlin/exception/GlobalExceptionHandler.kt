@@ -20,7 +20,10 @@ fun Application.configureGlobalExceptionHandling() {
         }
         exception<RuntimeException> { call, cause ->
             this@configureGlobalExceptionHandling.log.error(cause.message, cause)
-            call.respond(status = HttpStatusCode.InternalServerError, message = cause.localizedMessage)
+            call.respond(
+                status = HttpStatusCode.InternalServerError,
+                message = cause.message ?: "Internal server error"
+            )
         }
     }
 }

@@ -21,7 +21,7 @@ class RedisClientWrapper(
         ignoreUnknownKeys = true
     }
 
-    suspend inline fun <reified T> set(key: String, value: T, ttlSeconds: Long? = 10.seconds.inWholeMilliseconds) = withContext(ioDispatcher) {
+    suspend inline fun <reified T> set(key: String, value: T, ttlSeconds: Long? = 10) = withContext(ioDispatcher) {
         val str = json.encodeToString(value)
         if (ttlSeconds != null) {
             connection.setex(key, ttlSeconds, str)

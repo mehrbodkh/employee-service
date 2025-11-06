@@ -134,28 +134,28 @@ class DatabaseEmployeeDataSource(
                     .map { it[EmployeesTable.id].value }
                     .toList()
 
-                subordinates.forEach { subId ->
-                    EmployeesTable.update({ EmployeesTable.id eq subId }) {
-                        it[supervisor] = supervisorId?.let { sid ->
-                            EntityIDFunctionProvider.createEntityID(
-                                sid,
-                                EmployeesTable
-                            )
-                        }
+                EmployeesTable.update({
+                    EmployeesTable.supervisor eq id
+                }) {
+                    it[supervisor] = supervisorId?.let { sid ->
+                        EntityIDFunctionProvider.createEntityID(
+                            sid,
+                            EmployeesTable
+                        )
                     }
                 }
 
-                subordinates.forEach { subId ->
-                    val descendantSubtree = EmployeeHierarchyTable.selectAll()
-                        .where { EmployeeHierarchyTable.ancestor eq subId }
-                        .map { it[EmployeeHierarchyTable.descendant] }
-                        .toList()
+                EmployeeHierarchyTable.deleteWhere {
+                    (EmployeeHierarchyTable.ancestor eq id) or (EmployeeHierarchyTable.descendant eq id)
+                }
 
-                    EmployeeHierarchyTable.deleteWhere {
-                        (EmployeeHierarchyTable.ancestor eq id) and (EmployeeHierarchyTable.descendant inList descendantSubtree)
-                    }
+                if (supervisorId != null) {
+                    subordinates.forEach { subId ->
+                        val descendantSubtree = EmployeeHierarchyTable.selectAll()
+                            .where { EmployeeHierarchyTable.ancestor eq subId }
+                            .map { it[EmployeeHierarchyTable.descendant] }
+                            .toList()
 
-                    if (supervisorId != null) {
                         EmployeeHierarchyTable.selectAll()
                             .where { EmployeeHierarchyTable.descendant eq supervisorId }
                             .map { it[EmployeeHierarchyTable.ancestor] to it[EmployeeHierarchyTable.distance] }
@@ -178,20 +178,16 @@ class DatabaseEmployeeDataSource(
                     }
                 }
 
-                EmployeeHierarchyTable.deleteWhere {
-                    (EmployeeHierarchyTable.ancestor eq id) or (EmployeeHierarchyTable.descendant eq id)
-                }
-
                 EmployeesTable.deleteWhere { EmployeesTable.id eq id }
             }
         }
     }
 
-    override suspend fun getSubordinatesCount(managerId: UUID): Long = suspendTransaction(db) {
+    override suspend fun getDirectSubordinatesCount(managerId: UUID): Long = suspendTransaction(db) {
         withContext(ioDispatcher) {
             EmployeeHierarchyTable
                 .selectAll()
-                .where { (EmployeeHierarchyTable.ancestor eq managerId) and (EmployeeHierarchyTable.distance greater 0) }
+                .where { (EmployeeHierarchyTable.ancestor eq managerId) and (EmployeeHierarchyTable.distance eq 1) }
                 .count()
         }
     }

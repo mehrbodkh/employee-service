@@ -38,7 +38,7 @@ class EmployeeRepository(
     }
 
     suspend fun getSubordinatesCount(id: UUID): Long = withContext(ioDispatcher) {
-        dbDataSource.getSubordinatesCount(id)
+        dbDataSource.getDirectSubordinatesCount(id)
     }
 
     suspend fun getSubordinates(id: UUID, depth: Int = 1): List<EmployeeNodeDTO> = withContext(ioDispatcher) {

@@ -104,6 +104,29 @@ class EmployeeControllerTest {
         }
 
         @Test
+        fun `should delete user after supervisor update`() = initializedTestApplication {
+            val employee0 = createEmployee(EmployeeDTO(null, "name", "surname", "email0", "position"))
+            val employee1 = createEmployee(EmployeeDTO(null, "name", "surname", "email1", "position", employee0.id))
+            val employee2 = createEmployee(EmployeeDTO(null, "name", "surname", "email2", "position", employee1.id))
+            var employee3 = createEmployee(EmployeeDTO(null, "name", "surname", "email3", "position", employee1.id))
+            var employee4 = createEmployee(EmployeeDTO(null, "name", "surname", "email4", "position", employee3.id))
+            var employee5 = createEmployee(EmployeeDTO(null, "name", "surname", "email5", "position", employee3.id))
+            var employee6 = createEmployee(EmployeeDTO(null, "name", "surname", "email6", "position", employee3.id))
+
+            employee3 = updateEmployee(employee3.id.toString(), employee3.copy(supervisorId = employee2.id))
+            deleteEmployee(employee3.id.toString())
+
+
+            employee4 = getEmployee(employee4.id!!)
+            employee5 = getEmployee(employee5.id!!)
+            employee6 = getEmployee(employee6.id!!)
+            assertEquals(employee2.supervisorId, employee1.id)
+            assertEquals(employee4.supervisorId, employee2.id)
+            assertEquals(employee5.supervisorId, employee2.id)
+            assertEquals(employee6.supervisorId, employee2.id)
+        }
+
+        @Test
         fun `should throw if new supervisor doesn't exist`() = initializedTestApplication {
             val employee1 = createEmployee(EmployeeDTO(null, "name", "surname", "email", "position"))
 
