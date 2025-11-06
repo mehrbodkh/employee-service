@@ -18,5 +18,9 @@ fun Application.configureGlobalExceptionHandling() {
             this@configureGlobalExceptionHandling.log.error(cause.errorMessage, cause)
             call.respond(status = cause.statusCode, message = ServerErrorMessage(cause.errorMessage))
         }
+        exception<RuntimeException> { call, cause ->
+            this@configureGlobalExceptionHandling.log.error(cause.message, cause)
+            call.respond(status = HttpStatusCode.InternalServerError, message = cause.localizedMessage)
+        }
     }
 }
