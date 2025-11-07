@@ -5,9 +5,9 @@ This project reprsents the emlpoyee service + notification service for the imple
 ## How to run
 This project can be run completely via `docker-compose`. In the root of the project, run:
 
-| Task                           | Description                                                          |
-|--------------------------------|----------------------------------------------------------------------|
-| `docker composer up --build`   | Builds the project, pulls all dependencies and runs the full project |
+| Task                          | Description                                                          |
+|-------------------------------|----------------------------------------------------------------------|
+| `docker compose up --build`   | Builds the project, pulls all dependencies and runs the full project |
 
 
 > [!TIP]
